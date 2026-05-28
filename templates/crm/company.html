@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моя компания — Service CRM</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: #eef2f5; color: #202124; font-size: 13px; }
+        .app { display: grid; grid-template-columns: 92px 1fr; min-height: 100vh; }
+        .sidebar { background: #202a31; color: #d9e0e4; padding: 12px 8px; }
+        .avatar { width: 58px; height: 58px; border-radius: 50%; background: #ff7a00; margin: 0 auto 18px; display: grid; place-items: center; font-size: 28px; }
+        .nav-item { display: flex; gap: 8px; align-items: center; padding: 10px 8px; border-radius: 4px; color: #cfd6db; text-decoration: none; margin-bottom: 4px; }
+        .nav-item.active, .nav-item:hover { background: #5d666d; color: white; }
+        .main { overflow: auto; }
+        .topbar { height: 42px; background: white; border-bottom: 1px solid #dfe3e6; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; }
+        .title { font-size: 19px; font-weight: 700; }
+        .periods { display: flex; gap: 6px; }
+        .period { border: 1px solid #cfd6dc; background: white; border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+        .period.active { background: #263238; color: white; border-color: #263238; }
+        .content { padding: 18px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(6, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+        .card { background: white; border: 1px solid #dfe4e8; border-radius: 8px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+        .kpi-title { color: #7b8790; font-size: 12px; margin-bottom: 8px; }
+        .kpi-value { font-size: 26px; font-weight: 800; }
+        .kpi-sub { margin-top: 6px; color: #7b8790; font-size: 12px; }
+        .green { color: #00a651; }
+        .red { color: #d32f2f; }
+        .blue { color: #1976d2; }
+        .orange { color: #f57c00; }
+        .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+        .wide { grid-column: span 2; }
+        .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .card-title { font-size: 16px; font-weight: 700; }
+        .muted { color: #7b8790; font-size: 12px; }
+        .bars { display: grid; gap: 10px; }
+        .bar-row { display: grid; grid-template-columns: 120px 1fr 42px; align-items: center; gap: 10px; }
+        .bar { height: 10px; background: #edf1f5; border-radius: 99px; overflow: hidden; }
+        .bar-fill { height: 100%; background: #1976d2; border-radius: 99px; min-width: 4px; }
+        .bar-fill.green-bg { background: #00a651; }
+        .bar-fill.red-bg { background: #d32f2f; }
+        .bar-fill.orange-bg { background: #f57c00; }
+        .chart { height: 230px; display: flex; align-items: end; gap: 12px; padding: 14px 8px 0; border-bottom: 1px solid #e1e5e8; }
+        .chart-col { flex: 1; display: grid; gap: 6px; align-items: end; text-align: center; }
+        .chart-bar { background: #1976d2; border-radius: 6px 6px 0 0; min-height: 4px; }
+        .chart-bar.money { background: #00a651; opacity: .85; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: #66717a; background: #f5f7f9; padding: 9px; border-bottom: 1px solid #e0e5e8; font-size: 12px; }
+        td { padding: 9px; border-bottom: 1px solid #eef1f3; vertical-align: top; }
+        .badge { display: inline-flex; border-radius: 4px; color: white; padding: 4px 8px; font-size: 12px; font-weight: 700; }
+        .badge-new { background: #2196f3; }
+        .badge-in_work, .badge-diagnostics, .badge-approval, .badge-pickup { background: #00a651; }
+        .badge-sent { background: #607d8b; }
+        .badge-completed { background: #455a64; }
+        .badge-cancelled { background: #d32f2f; }
+        .badge-waiting_master { background: #f57c00; }
+        .btn { border: 1px solid #cbd2d8; background: white; border-radius: 4px; padding: 7px 11px; cursor: pointer; color: #263238; text-decoration: none; }
+        .btn-green { background: #00a651; color: white; border-color: #00a651; }
+        .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } .layout, .split { grid-template-columns: 1fr; } .wide { grid-column: span 1; } }
+        @media (max-width: 800px) { .app { grid-template-columns: 1fr; } .sidebar { display: none; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="avatar">👨‍🔧</div>
+        <a class="nav-item active" href="/company/">⌂ Моя компания</a>
+        <a class="nav-item" href="/">▣ Заказы</a>
+        <a class="nav-item" href="#">✓ Задачи</a>
+        <a class="nav-item" href="#">◎ Финансы</a>
+        <a class="nav-item" href="#">☏ Контакты</a>
+        <a class="nav-item" href="#">⚙ Настройки</a>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div class="title">Моя компания</div>
+            <div class="periods">
+                <button class="period">День</button>
+                <button class="period active">Неделя</button>
+                <button class="period">Месяц</button>
+                <a class="btn btn-green" href="/">+ Заказ</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <section class="kpi-grid">
+                <div class="card"><div class="kpi-title">Заказы сегодня</div><div class="kpi-value blue">{{ kpi.orders_today }}</div><div class="kpi-sub">Неделя: {{ kpi.orders_week }}</div></div>
+                <div class="card"><div class="kpi-title">Заказы за месяц</div><div class="kpi-value">{{ kpi.orders_month }}</div><div class="kpi-sub">Всего: {{ kpi.orders_total }}</div></div>
+                <div class="card"><div class="kpi-title">В работе</div><div class="kpi-value orange">{{ kpi.in_work }}</div><div class="kpi-sub">Активные ремонты</div></div>
+                <div class="card"><div class="kpi-title">Просрочки</div><div class="kpi-value red">{{ kpi.overdue }}</div><div class="kpi-sub">Нужно внимание</div></div>
+                <div class="card"><div class="kpi-title">Выручка</div><div class="kpi-value green">{{ kpi.revenue }} ₽</div><div class="kpi-sub">По закрытым/созданным заказам</div></div>
+                <div class="card"><div class="kpi-title">Прибыль</div><div class="kpi-value green">{{ kpi.profit }} ₽</div><div class="kpi-sub">После себестоимости и зарплат</div></div>
+            </section>
+
+            <section class="layout">
+                <div class="card wide">
+                    <div class="card-head">
+                        <div><div class="card-title">Динамика заказов и денег за 7 дней</div><div class="muted">Столбцы: синий — заказы, зеленый — выручка</div></div>
+                    </div>
+                    <div class="chart">
+                        {% for label in daily_labels %}
+                            <div class="chart-col">
+                                <div class="chart-bar" style="height: {% if daily_counts|length %}{{ daily_counts|slice:forloop.counter0 }}{% endif %}20px"></div>
+                                <div class="chart-bar money" style="height: 34px"></div>
+                                <div class="muted">{{ label }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Статусы заказов</div><span class="muted">Live counters</span></div>
+                    <div class="bars">
+                        {% for item in status_stats %}
+                        <div class="bar-row">
+                            <div>{{ item.label }}</div>
+                            <div class="bar"><div class="bar-fill {% if item.key == 'completed' %}green-bg{% elif item.key == 'cancelled' %}red-bg{% elif item.key == 'waiting_master' %}orange-bg{% endif %}" style="width: {% widthratio item.count kpi.orders_total 100 %}%"></div></div>
+                            <b>{{ item.count }}</b>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Финансы</div><span class="muted">Зарплаты и маржа</span></div>
+                    <div class="kpi-grid" style="grid-template-columns:1fr 1fr; margin:0">
+                        <div><div class="kpi-title">ЗП мастеров</div><div class="kpi-value">{{ kpi.master_salary }} ₽</div></div>
+                        <div><div class="kpi-title">ЗП менеджеров</div><div class="kpi-value">{{ kpi.manager_salary }} ₽</div></div>
+                        <div><div class="kpi-title">Выдано с ремонтом</div><div class="kpi-value green">{{ kpi.completed }}</div></div>
+                        <div><div class="kpi-title">Отказы</div><div class="kpi-value red">{{ kpi.cancelled }}</div></div>
+                    </div>
+                </div>
+
+                <div class="card wide">
+                    <div class="card-head"><div class="card-title">Мастера</div><span class="muted">Производительность</span></div>
+                    <table>
+                        <thead><tr><th>Мастер</th><th>Заказов</th><th>Выручка</th><th>Прибыль</th></tr></thead>
+                        <tbody>
+                            {% for master in masters %}
+                            <tr>
+                                <td>{{ master.username }}</td>
+                                <td>{{ master.executed_count|default:0 }}</td>
+                                <td>{{ master.executed_revenue|default:0 }} ₽</td>
+                                <td>{{ master.executed_profit|default:0 }} ₽</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4">Пока нет назначенных мастеров</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="split wide">
+                    <div class="card">
+                        <div class="card-head"><div class="card-title">Просроченные заказы</div><span class="muted">{{ kpi.overdue }}</span></div>
+                        <table>
+                            <thead><tr><th>Заказ</th><th>Клиент</th><th>Срок</th><th>Статус</th></tr></thead>
+                            <tbody>
+                                {% for order in overdue_orders %}
+                                <tr>
+                                    <td><a href="/" class="blue">{{ order.order_number }}</a></td>
+                                    <td>{% if order.customer %}{{ order.customer.name }}{% else %}—{% endif %}</td>
+                                    <td>{{ order.deadline|date:'d.m.Y H:i' }}</td>
+                                    <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4">Просрочек нет</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head"><div class="card-title">Последние изменения</div><span class="muted">Заказы</span></div>
+                        <table>
+                            <thead><tr><th>Заказ</th><th>Клиент</th><th>Статус</th><th>Обновлен</th></tr></thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td><a href="/" class="blue">{{ order.order_number }}</a></td>
+                                    <td>{% if order.customer %}{{ order.customer.name }}{% else %}—{% endif %}</td>
+                                    <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                                    <td>{{ order.updated_at|date:'d.m.Y H:i' }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4">Пока нет заказов</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>
