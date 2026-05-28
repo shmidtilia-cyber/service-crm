@@ -3,175 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service CRM</title>
+    <title>Service CRM — Заказы</title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            color: #222;
-        }
-
-        header {
-            background: #111827;
-            color: white;
-            padding: 20px 30px;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 28px;
-        }
-
-        .container {
-            padding: 30px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-
-        .card h3 {
-            margin: 0 0 10px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .card .value {
-            font-size: 32px;
-            font-weight: bold;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-
-        th, td {
-            padding: 14px;
-            border-bottom: 1px solid #eee;
-            text-align: left;
-        }
-
-        th {
-            background: #f9fafb;
-        }
-
-        .status {
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            display: inline-block;
-            background: #e5e7eb;
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: #f3f5f7; color: #202124; font-size: 13px; }
+        button, input, select, textarea { font: inherit; }
+        .app { display: grid; grid-template-columns: 92px 1fr; min-height: 100vh; }
+        .sidebar { background: #202a31; color: #d9e0e4; padding: 12px 8px; }
+        .avatar { width: 58px; height: 58px; border-radius: 50%; background: #ff7a00; margin: 0 auto 18px; display: grid; place-items: center; font-size: 28px; }
+        .nav-item { display: flex; gap: 8px; align-items: center; padding: 10px 8px; border-radius: 4px; color: #cfd6db; text-decoration: none; margin-bottom: 4px; }
+        .nav-item.active, .nav-item:hover { background: #5d666d; color: white; }
+        .main { overflow: hidden; }
+        .topbar { height: 34px; background: #fff; border-bottom: 1px solid #dfe3e6; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; }
+        .title { font-size: 18px; font-weight: 700; }
+        .search { width: 260px; border: 1px solid #d5dade; height: 26px; border-radius: 3px; padding: 0 10px; }
+        .toolbar { padding: 58px 12px 10px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .btn { border: 1px solid #cbd2d8; background: #fff; border-radius: 4px; padding: 7px 12px; cursor: pointer; color: #263238; }
+        .btn:hover { background: #f5f7f9; }
+        .btn-green { background: #00a651; color: white; border-color: #00a651; font-weight: 700; }
+        .btn-purple { background: #8d2f78; color: white; border-color: #8d2f78; }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
+        .status-filter.active { background: #e8f1ff; border-color: #3b82f6; color: #1d4ed8; }
+        .summary { position: absolute; right: 14px; top: 58px; display: flex; gap: 8px; }
+        .summary-card { min-width: 120px; border-radius: 6px; padding: 10px 14px; color: white; font-weight: 700; }
+        .summary-card.orange { background: #ff8a00; }
+        .summary-card.dark { background: #263238; }
+        .table-wrap { margin: 0 12px 12px; background: white; border: 1px solid #dfe3e6; overflow: auto; height: calc(100vh - 140px); }
+        table { width: 100%; border-collapse: collapse; min-width: 1320px; }
+        th { background: #eef0f2; color: #4b5563; font-size: 12px; padding: 8px; border-bottom: 1px solid #d9dee3; text-align: left; white-space: nowrap; }
+        td { padding: 8px; border-bottom: 1px solid #eef1f3; vertical-align: top; white-space: nowrap; }
+        tr:hover { background: #f8fbff; }
+        .order-link { color: #1976d2; font-weight: 700; cursor: pointer; }
+        .muted { color: #7b8790; font-size: 12px; }
+        .deadline-dot { width: 10px; height: 10px; background: #ff9800; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; color: white; padding: 4px 8px; font-size: 12px; font-weight: 700; }
+        .badge-new { background: #2196f3; }
+        .badge-in_work { background: #00a651; }
+        .badge-assembled { background: #673ab7; }
+        .badge-sent { background: #607d8b; }
+        .badge-completed { background: #455a64; }
+        .badge-cancelled { background: #d32f2f; }
+        .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; z-index: 20; }
+        .drawer-backdrop.show { display: block; }
+        .drawer { position: fixed; top: 0; right: -760px; width: 760px; max-width: 96vw; height: 100vh; background: white; z-index: 30; transition: right .22s ease; display: grid; grid-template-columns: 1fr 220px; box-shadow: -8px 0 20px rgba(0,0,0,.22); }
+        .drawer.show { right: 0; }
+        .drawer-main { overflow: auto; padding: 16px 18px 72px; }
+        .drawer-feed { background: #eaf3ff; border-left: 1px solid #c7d7ee; display: flex; flex-direction: column; }
+        .drawer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .drawer-title { font-size: 18px; font-weight: 700; }
+        .tabs { display: flex; gap: 20px; border-bottom: 1px solid #e4e7eb; margin-bottom: 14px; }
+        .tab { padding: 9px 0; color: #2563eb; border-bottom: 2px solid #2563eb; font-weight: 700; }
+        .section-title { text-align: center; color: #374151; font-weight: 700; margin: 20px 0 12px; }
+        .form-row { display: grid; grid-template-columns: 130px 1fr; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .form-row label { text-align: right; color: #4b5563; font-weight: 700; font-size: 12px; }
+        .required::after { content: ' *'; color: #e53935; }
+        input, select, textarea { border: 1px solid #d1d5db; border-radius: 4px; min-height: 31px; padding: 6px 8px; background: white; width: 100%; }
+        textarea { min-height: 58px; resize: vertical; }
+        .inline { display: grid; grid-template-columns: 1fr 92px; gap: 6px; }
+        .drawer-actions { position: absolute; left: 0; right: 220px; bottom: 0; background: white; border-top: 1px solid #e5e7eb; padding: 10px 18px; display: flex; gap: 8px; }
+        .feed-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 10px; }
+        .feed-tabs button { border: 1px solid #c9d8ea; background: white; padding: 8px; border-radius: 4px; cursor: pointer; }
+        .feed-tabs button.active { background: #dbeafe; color: #1d4ed8; font-weight: 700; }
+        .feed-body { padding: 8px 10px; overflow: auto; flex: 1; }
+        .event { background: white; border-radius: 8px; padding: 9px; margin-bottom: 8px; border: 1px solid #d8e5f7; }
+        .comment-form { padding: 10px; border-top: 1px solid #c7d7ee; background: #f7fbff; }
+        .empty-feed { color: #718096; text-align: center; padding-top: 80px; }
+        .client-card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; margin: 10px 0; }
+        .messages { margin: 0 12px 8px; }
+        .message { background: #e8f7ee; border: 1px solid #b8e2c5; padding: 8px 10px; border-radius: 4px; }
+        .hidden { display: none; }
+        @media (max-width: 900px) { .app { grid-template-columns: 1fr; } .sidebar { display: none; } .drawer { grid-template-columns: 1fr; } .drawer-feed { display: none; } .drawer-actions { right: 0; } }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Service CRM</h1>
-        <p>Панель управления сервисным центром</p>
-    </header>
+<div class="app">
+    <aside class="sidebar">
+        <div class="avatar">👨‍🔧</div>
+        <a class="nav-item" href="#">⌂ Моя компания</a>
+        <a class="nav-item" href="#">✓ Задачи</a>
+        <a class="nav-item" href="#">☰ Обращения</a>
+        <a class="nav-item" href="#">☷ Записи</a>
+        <a class="nav-item active" href="#">▣ Заказы</a>
+        <a class="nav-item" href="#">₽ Продажи</a>
+        <a class="nav-item" href="#">▥ Счета</a>
+        <a class="nav-item" href="#">◎ Финансы</a>
+        <a class="nav-item" href="#">▦ Склады</a>
+        <a class="nav-item" href="#">☏ Контакты</a>
+        <a class="nav-item" href="#">⚙ Настройки</a>
+    </aside>
 
-    <div class="container">
-        <div class="stats">
-            <div class="card">
-                <h3>Всего заказов</h3>
-                <div class="value">{{ stats.orders_total }}</div>
-            </div>
-
-            <div class="card">
-                <h3>Новые заказы</h3>
-                <div class="value">{{ stats.orders_new }}</div>
-            </div>
-
-            <div class="card">
-                <h3>В работе</h3>
-                <div class="value">{{ stats.orders_in_work }}</div>
-            </div>
-
-            <div class="card">
-                <h3>Клиенты</h3>
-                <div class="value">{{ stats.customers_total }}</div>
-            </div>
-
-            <div class="card">
-                <h3>Товары</h3>
-                <div class="value">{{ stats.products_total }}</div>
-            </div>
-
-            <div class="card">
-                <h3>Остаток склада</h3>
-                <div class="value">{{ stats.stock_total }}</div>
-            </div>
-
-            <div class="card">
-                <h3>Выручка</h3>
-                <div class="value">{{ stats.revenue_total }} ₽</div>
-            </div>
-
-            <div class="card">
-                <h3>Прибыль</h3>
-                <div class="value">{{ stats.profit_total }} ₽</div>
-            </div>
+    <main class="main">
+        <div class="topbar">
+            <div class="title">Заказы</div>
+            <input id="searchInput" class="search" placeholder="Поиск: клиент, телефон, заказ, IMEI">
         </div>
 
-        <div class="card">
-            <h2>Последние заказы</h2>
+        <div class="summary">
+            <div class="summary-card orange">{{ stats.orders_total }} заказа<br><span class="muted" style="color:white">Всего</span></div>
+            <div class="summary-card dark">{{ stats.revenue_total }} ₽<br><span class="muted" style="color:white">Выручка</span></div>
+        </div>
 
-            <table>
+        <div class="toolbar">
+            <button class="btn btn-green" onclick="openCreateDrawer()">+ Заказ</button>
+            <button class="btn">+ Расчет</button>
+            <button class="btn" onclick="resetFilters()">Фильтр</button>
+            <button class="btn status-filter active" data-status="all" onclick="filterStatus(this)">Все</button>
+            <button class="btn status-filter" data-status="new" onclick="filterStatus(this)">Новый</button>
+            <button class="btn status-filter" data-status="in_work" onclick="filterStatus(this)">Ремонт</button>
+            <button class="btn status-filter" data-status="assembled" onclick="filterStatus(this)">Готов</button>
+            <button class="btn status-filter" data-status="sent" onclick="filterStatus(this)">Доставка</button>
+            <button class="btn status-filter" data-status="completed" onclick="filterStatus(this)">Выдан</button>
+            <button class="btn status-filter" data-status="cancelled" onclick="filterStatus(this)">Отказ</button>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="table-wrap">
+            <table id="ordersTable">
                 <thead>
                     <tr>
-                        <th>Номер</th>
-                        <th>Клиент</th>
-                        <th>Устройство</th>
+                        <th><input type="checkbox"></th>
+                        <th>Заказ</th>
+                        <th>Крайний срок</th>
                         <th>Статус</th>
-                        <th>Сумма</th>
+                        <th>Создал</th>
+                        <th>Устройство</th>
+                        <th>Неисправность</th>
+                        <th>Клиент</th>
+                        <th>Итого</th>
+                        <th>Заметки мастера</th>
+                        <th>Рекламная кампания</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for order in orders %}
-                    <tr>
-                        <td>{{ order.order_number }}</td>
-                        <td>
-                            {% if order.customer %}
-                                {{ order.customer.name }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </td>
-                        <td>
-                            {{ order.device_brand|default:'' }}
-                            {{ order.device_model|default:'' }}
-                        </td>
-                        <td>
-                            <span class="status">
-                                {{ order.get_status_display }}
-                            </span>
-                        </td>
-                        <td>{{ order.total_price }} ₽</td>
+                {% for order in orders %}
+                    <tr class="order-row" data-status="{{ order.status }}" data-search="{{ order.order_number }} {{ order.serial_number }} {% if order.customer %}{{ order.customer.name }} {{ order.customer.phone }}{% endif %} {{ order.issue }} {{ order.device_brand }} {{ order.device_model }}">
+                        <td><input type="checkbox"></td>
+                        <td><span class="order-link" onclick="openOrderDrawer('order-{{ order.id }}')">{{ order.order_number }}</span></td>
+                        <td><span class="deadline-dot"></span>{% if order.deadline %}{{ order.deadline|date:'d.m.Y H:i' }}{% else %}—{% endif %}</td>
+                        <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                        <td>{% if order.manager %}{{ order.manager.username }}{% else %}—{% endif %}<br><span class="muted">{{ order.created_at|date:'d.m.Y H:i' }}</span></td>
+                        <td>{{ order.device_brand|default:'' }} {{ order.device_model|default:'' }}<br><span class="muted">{{ order.serial_number|default:'—' }}</span></td>
+                        <td>{{ order.issue|default:'—' }}</td>
+                        <td>{% if order.customer %}<span class="order-link">{{ order.customer.name }}</span><br><span class="muted">{{ order.customer.phone }}</span>{% else %}—{% endif %}</td>
+                        <td>{{ order.total_price|default:0 }} ₽</td>
+                        <td>{{ order.manager_notes|default:'—' }}</td>
+                        <td>{{ order.ad_campaign|default:'—' }}</td>
                     </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5">Заказов пока нет</td>
-                    </tr>
-                    {% endfor %}
+                {% empty %}
+                    <tr><td colspan="11">Заказов пока нет. Нажмите “+ Заказ”.</td></tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>
+    </main>
+</div>
+
+<div id="backdrop" class="drawer-backdrop" onclick="closeDrawer()"></div>
+
+<div id="createDrawer" class="drawer">
+    <form method="post" class="drawer-main">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_order">
+        <div class="drawer-head">
+            <div class="drawer-title">⊙ Новый заказ</div>
+            <button type="button" class="btn btn-sm" onclick="closeDrawer()">×</button>
+        </div>
+        <div class="tabs"><div class="tab">Информация о заказе</div></div>
+
+        <div class="form-row"><label>Тип</label><select name="order_type"><option>ЗАКАЗ</option><option>Принят в СЦ</option><option>Выездной</option><option>Доставка</option><option>Гарантий</option></select></div>
+        <div class="form-row"><label>Менеджер</label><input value="{% if request.user.is_authenticated %}{{ request.user.username }}{% else %}Не назначен{% endif %}" disabled></div>
+        <div class="form-row"><label>Исполнитель</label><select name="executor"><option value="">Не назначен</option>{% for user in users %}<option value="{{ user.id }}">{{ user.username }}{% if user.userprofile %} — {{ user.userprofile.get_role_display }}{% endif %}</option>{% endfor %}</select></div>
+
+        <div class="section-title">Устройство</div>
+        <div class="form-row"><label class="required">Тип</label><select name="device_group" required><option>- Не задано -</option>{% for item in device_groups %}<option>{{ item }}</option>{% endfor %}</select></div>
+        <div class="form-row"><label class="required">Серийный номер / IMEI</label><div class="inline"><input id="serialInput" name="serial_number" required><button type="button" class="btn btn-sm" onclick="generateImei()">Сгенерировать</button></div></div>
+        <div class="form-row"><label class="required">Группа</label><select name="device_group_extra"><option>- Не задано -</option>{% for item in device_groups %}<option>{{ item }}</option>{% endfor %}</select></div>
+        <div class="form-row"><label>Бренд</label><select name="device_brand"><option>- Не задано -</option>{% for item in device_brands %}<option>{{ item }}</option>{% endfor %}</select></div>
+        <div class="form-row"><label>Модель</label><select name="device_model"><option>- Не задано -</option>{% for item in device_models %}<option>{{ item }}</option>{% endfor %}</select></div>
+        <div class="form-row"><label class="required">Состояние</label><textarea name="condition" required>Потертости, царапины</textarea></div>
+
+        <div class="section-title">Клиент</div>
+        <div class="client-card">
+            <div class="form-row"><label class="required">Клиент</label><input name="customer_name" placeholder="Введите имя клиента" required></div>
+            <div class="form-row"><label>Телефон</label><input name="customer_phone" placeholder="+7 ..."></div>
+            <div class="form-row"><label>Адрес</label><input name="address"></div>
+        </div>
+
+        <div class="form-row"><label class="required">Неисправность</label><textarea name="issue" required></textarea></div>
+        <div class="form-row"><label>Пароль</label><input name="password"></div>
+
+        <div class="section-title">Дополнительная информация</div>
+        <div class="form-row"><label>Рекламная кампания</label><select name="ad_campaign"><option>- Не задано -</option>{% for item in ad_campaigns %}<option>{{ item }}</option>{% endfor %}<option>Яндекс</option><option>Google</option><option>Авито</option><option>Рекомендация</option></select></div>
+        <div class="form-row"><label>Заметки менеджера</label><textarea name="manager_notes"></textarea></div>
+        <div class="form-row"><label>Ориентировочная цена</label><input name="estimated_price" type="number" min="0" step="0.01" value="0"></div>
+        <div class="form-row"><label>Срочно</label><input name="urgent" type="checkbox" style="width:auto"></div>
+        <div class="form-row"><label>Крайний срок</label><input name="deadline" type="datetime-local"></div>
+        <div class="form-row"><label>Предоплата</label><input name="prepayment" type="number" min="0" step="0.01" value="0"></div>
+
+        <div class="drawer-actions">
+            <button class="btn btn-green" type="submit">Создать</button>
+            <button class="btn" type="submit">Создать и открыть</button>
+            <button class="btn" type="button" onclick="closeDrawer()">Отмена</button>
+        </div>
+    </form>
+    <aside class="drawer-feed">
+        <div class="feed-tabs"><button type="button" class="active">Все события</button><button type="button">Комментарии</button></div>
+        <div class="feed-body"><div class="empty-feed">Здесь пока ничего нет<br>История появится после создания заказа.</div></div>
+        <div class="comment-form"><textarea disabled placeholder="Сначала создайте заказ"></textarea></div>
+    </aside>
+</div>
+
+{% for order in orders %}
+<div id="order-{{ order.id }}" class="drawer order-detail">
+    <div class="drawer-main">
+        <div class="drawer-head">
+            <div class="drawer-title">{{ order.order_number }} — карточка заказа</div>
+            <button type="button" class="btn btn-sm" onclick="closeDrawer()">×</button>
+        </div>
+        <div class="tabs"><div class="tab">Информация о заказе</div></div>
+        <div class="client-card">
+            <b>Клиент</b><br>
+            {% if order.customer %}
+                {{ order.customer.name }}<br>
+                <span class="muted">{{ order.customer.phone|default:'Телефон не указан' }}</span><br>
+                <span class="muted">{{ order.customer.address|default:'Адрес не указан' }}</span>
+            {% else %}
+                Клиент не указан
+            {% endif %}
+        </div>
+        <div class="form-row"><label>Статус</label><div><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></div></div>
+        <div class="form-row"><label>Устройство</label><div>{{ order.device_group|default:'—' }} / {{ order.device_brand|default:'—' }} / {{ order.device_model|default:'—' }}</div></div>
+        <div class="form-row"><label>IMEI / серийный</label><div>{{ order.serial_number|default:'—' }}</div></div>
+        <div class="form-row"><label>Неисправность</label><div>{{ order.issue|default:'—' }}</div></div>
+        <div class="form-row"><label>Состояние</label><div>{{ order.condition|default:'—' }}</div></div>
+        <div class="form-row"><label>Менеджер</label><div>{% if order.manager %}{{ order.manager.username }}{% else %}—{% endif %}</div></div>
+        <div class="form-row"><label>Сумма</label><div>{{ order.total_price }} ₽</div></div>
+        <div class="form-row"><label>Заметки</label><div>{{ order.manager_notes|default:'—' }}</div></div>
     </div>
+    <aside class="drawer-feed">
+        <div class="feed-tabs"><button type="button" class="active">Все события</button><button type="button">Комментарии</button></div>
+        <div class="feed-body">
+            {% for event in order.events.all %}
+                <div class="event"><b>{{ event.user.username|default:'Система' }}</b><br>{{ event.text }}<br><span class="muted">{{ event.created_at|date:'d.m.Y H:i' }}</span></div>
+            {% endfor %}
+            {% for comment in order.comments.all %}
+                <div class="event"><b>Комментарий{% if comment.user %}: {{ comment.user.username }}{% endif %}</b><br>{{ comment.text }}<br><span class="muted">{{ comment.created_at|date:'d.m.Y H:i' }}</span></div>
+            {% endfor %}
+            {% if not order.events.all and not order.comments.all %}<div class="empty-feed">История пока пустая</div>{% endif %}
+        </div>
+        <form method="post" class="comment-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_comment">
+            <input type="hidden" name="order_id" value="{{ order.id }}">
+            <textarea name="comment_text" placeholder="Текст комментария" required></textarea>
+            <button class="btn btn-green" style="width:100%; margin-top:6px">Отправить</button>
+        </form>
+    </aside>
+</div>
+{% endfor %}
+
+<script>
+    let currentStatus = 'all';
+    const backdrop = document.getElementById('backdrop');
+
+    function closeDrawer() {
+        document.querySelectorAll('.drawer').forEach(d => d.classList.remove('show'));
+        backdrop.classList.remove('show');
+    }
+    function openCreateDrawer() {
+        closeDrawer();
+        document.getElementById('createDrawer').classList.add('show');
+        backdrop.classList.add('show');
+    }
+    function openOrderDrawer(id) {
+        closeDrawer();
+        document.getElementById(id).classList.add('show');
+        backdrop.classList.add('show');
+    }
+    function generateImei() {
+        let digits = '';
+        for (let i = 0; i < 14; i++) digits += Math.floor(Math.random() * 10);
+        let sum = 0;
+        for (let i = 0; i < 14; i++) {
+            let n = parseInt(digits[i], 10);
+            if (i % 2 === 1) { n *= 2; if (n > 9) n -= 9; }
+            sum += n;
+        }
+        const check = (10 - (sum % 10)) % 10;
+        document.getElementById('serialInput').value = digits + check;
+    }
+    function applyFilters() {
+        const q = document.getElementById('searchInput').value.toLowerCase().trim();
+        document.querySelectorAll('.order-row').forEach(row => {
+            const matchesText = row.dataset.search.toLowerCase().includes(q);
+            const matchesStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
+            row.style.display = matchesText && matchesStatus ? '' : 'none';
+        });
+    }
+    function filterStatus(btn) {
+        currentStatus = btn.dataset.status;
+        document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+    function resetFilters() {
+        currentStatus = 'all';
+        document.getElementById('searchInput').value = '';
+        document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-status="all"]').classList.add('active');
+        applyFilters();
+    }
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+</script>
 </body>
 </html>
