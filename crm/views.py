@@ -1,6 +1,8 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -34,29 +36,12 @@ DEFAULT_MODELS = [
 ]
 
 STATUS_GROUPS = {
-    'Новые': [
-        ('new', 'Новый'),
-        ('client', 'У клиента'),
-        ('prepaid', 'Предоплата'),
-    ],
-    'В работе': [
-        ('in_work', 'Ремонт'),
-        ('pickup', 'Забор'),
-        ('diagnostics', 'Диагностика'),
-        ('approval', 'Согласование'),
-    ],
-    'Отложенные': [
-        ('waiting_master', 'Ожидает ответ мастера'),
-    ],
-    'Доставка': [
-        ('sent', 'Доставка'),
-    ],
-    'Закрытые успешно': [
-        ('completed', 'Выдан с ремонтом'),
-    ],
-    'Закрытые неуспешно': [
-        ('cancelled', 'Отказ'),
-    ],
+    'Новые': [('new', 'Новый'), ('client', 'У клиента'), ('prepaid', 'Предоплата')],
+    'В работе': [('in_work', 'Ремонт'), ('pickup', 'Забор'), ('diagnostics', 'Диагностика'), ('approval', 'Согласование')],
+    'Отложенные': [('waiting_master', 'Ожидает ответ мастера')],
+    'Доставка': [('sent', 'Доставка')],
+    'Закрытые успешно': [('completed', 'Выдан с ремонтом')],
+    'Закрытые неуспешно': [('cancelled', 'Отказ')],
 }
 
 
@@ -217,4 +202,72 @@ def dashboard(request):
         'ad_campaigns': list(AdCampaign.objects.order_by('name').values_list('name', flat=True)),
         'users': User.objects.order_by('username'),
         'status_groups': STATUS_GROUPS,
+    })
+
+
+def company_dashboard(request):
+    today = timezone.localdate()
+    week_start = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
+    now = timezone.now()
+
+    orders = Order.objects.select_related('manager', 'executor', 'customer').all()
+    closed_statuses = ['completed', 'cancelled']
+
+    kpi = {
+        'orders_total': orders.count(),
+        'orders_today': orders.filter(created_at__date=today).count(),
+        'orders_week': orders.filter(created_at__date__gte=week_start).count(),
+        'orders_month': orders.filter(created_at__date__gte=month_start).count(),
+        'in_work': orders.exclude(status__in=closed_statuses).count(),
+        'completed': orders.filter(status='completed').count(),
+        'cancelled': orders.filter(status='cancelled').count(),
+        'overdue': orders.exclude(status__in=closed_statuses).filter(deadline__lt=now).count(),
+        'revenue': orders.aggregate(total=Sum('total_price'))['total'] or 0,
+        'profit': orders.aggregate(total=Sum('profit'))['total'] or 0,
+        'master_salary': orders.aggregate(total=Sum('master_salary'))['total'] or 0,
+        'manager_salary': orders.aggregate(total=Sum('manager_salary'))['total'] or 0,
+    }
+
+    status_stats = []
+    for group, statuses in STATUS_GROUPS.items():
+        for status_key, status_label in statuses:
+            status_stats.append({
+                'key': status_key,
+                'label': status_label,
+                'group': group,
+                'count': orders.filter(status=status_key).count(),
+            })
+
+    masters = (
+        User.objects.annotate(
+            executed_count=Count('executed_orders'),
+            executed_revenue=Sum('executed_orders__total_price'),
+            executed_profit=Sum('executed_orders__profit'),
+        )
+        .order_by('-executed_count')[:10]
+    )
+
+    recent_orders = orders.order_by('-updated_at')[:12]
+    overdue_orders = orders.exclude(status__in=closed_statuses).filter(deadline__lt=now).order_by('deadline')[:12]
+
+    daily_labels = []
+    daily_counts = []
+    daily_revenue = []
+    for index in range(6, -1, -1):
+        day = today - timedelta(days=index)
+        day_orders = orders.filter(created_at__date=day)
+        daily_labels.append(day.strftime('%d.%m'))
+        daily_counts.append(day_orders.count())
+        daily_revenue.append(float(day_orders.aggregate(total=Sum('total_price'))['total'] or 0))
+
+    return render(request, 'crm/company.html', {
+        'kpi': kpi,
+        'status_stats': status_stats,
+        'masters': masters,
+        'recent_orders': recent_orders,
+        'overdue_orders': overdue_orders,
+        'daily_labels': daily_labels,
+        'daily_counts': daily_counts,
+        'daily_revenue': daily_revenue,
     })
