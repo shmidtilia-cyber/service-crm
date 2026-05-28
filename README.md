@@ -1,31 +1,54 @@
 # Service CRM
 
-WordPress CRM для сервисного центра.
+Python CRM для сервисного центра на FastAPI.
 
-## Цель проекта
+## Что будет в CRM
 
-Собрать CRM для управления ремонтами, клиентами, инженерами, складом деталей, зарплатами и уведомлениями.
+- заказы и ремонты;
+- клиенты;
+- инженеры;
+- статусы ремонта;
+- склад деталей;
+- зарплаты;
+- Telegram-уведомления;
+- веб-интерфейс на домене `crm-fadeev.ru`.
+
+## Технологии
+
+- Python 3.11+
+- FastAPI
+- SQLAlchemy
+- SQLite на старте, PostgreSQL позже
+- Jinja2 templates
+- Uvicorn
+
+## Запуск локально
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Открыть:
+
+```text
+http://127.0.0.1:8000
+```
 
 ## Структура
 
 ```text
 service-crm/
-├─ plugin/
-│  └─ service-crm.php
-├─ assets/
-│  ├─ css/
-│  │  └─ crm-style.css
-│  └─ js/
-│     └─ crm-script.js
-├─ docs/
-│  └─ acf-fields.md
-└─ tasks.md
+├─ app/
+│  ├─ main.py
+│  ├─ database.py
+│  ├─ models.py
+│  ├─ templates/
+│  │  └─ dashboard.html
+│  └─ static/
+│     └─ style.css
+├─ requirements.txt
+└─ README.md
 ```
-
-## Первый этап
-
-- Базовый WordPress-плагин CRM
-- Шорткод `[service_crm]`
-- Карточки заказов
-- Статусы ремонта
-- Подготовка под ACF-поля
