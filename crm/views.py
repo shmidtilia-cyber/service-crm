@@ -22,25 +22,13 @@ from .models import (
     UserProfile,
 )
 
-
-DEFAULT_DEVICE_GROUPS = [
-    'Ноутбук', 'Телефон', 'Робот-пылесос', 'Фен', 'Стайлер',
-    'Планшет', 'Моноблок', 'ПК', 'Пылесос', 'Игровая приставка',
-]
-
-DEFAULT_BRANDS = [
-    'Apple', 'Samsung', 'Xiaomi', 'Dyson', 'Dreame', 'Roborock',
-    'Asus', 'Lenovo', 'MSI', 'HP', 'Acer',
-]
-
-DEFAULT_MODELS = [
-    'iPhone', 'MacBook', 'Galaxy', 'Redmi', 'Dyson V8', 'Dyson Airwrap',
-    'Dreame L10s', 'Roborock Q Revo', 'VivoBook', 'IdeaPad',
-]
+DEFAULT_DEVICE_GROUPS = ['Ноутбук', 'Телефон', 'Робот-пылесос', 'Фен', 'Стайлер', 'Планшет', 'Моноблок', 'ПК', 'Пылесос', 'Игровая приставка']
+DEFAULT_BRANDS = ['Apple', 'Samsung', 'Xiaomi', 'Dyson', 'Dreame', 'Roborock', 'Asus', 'Lenovo', 'MSI', 'HP', 'Acer']
+DEFAULT_MODELS = ['iPhone', 'MacBook', 'Galaxy', 'Redmi', 'Dyson V8', 'Dyson Airwrap', 'Dreame L10s', 'Roborock Q Revo', 'VivoBook', 'IdeaPad']
 
 STATUS_GROUPS = {
     'Новые': [('new', 'Новый'), ('client', 'У клиента'), ('prepaid', 'Предоплата')],
-    'В работе': [('in_work', 'Ремонт'), ('pickup', 'Забор'), ('diagnostics', 'Диагностика'), ('approval', 'Согласование')],
+    'В работе': [('in_work', 'Ремонт'), ('pickup', 'Забор'), ('diagnostics', 'Диагностика'), ('approval', 'Согласование'), ('waiting_parts', 'Ждет запчасть'), ('ready', 'Готов')],
     'Отложенные': [('waiting_master', 'Ожидает ответ мастера')],
     'Доставка': [('sent', 'Доставка')],
     'Закрытые успешно': [('completed', 'Выдан с ремонтом')],
@@ -79,37 +67,67 @@ def _current_user(request):
     return request.user if request.user.is_authenticated else None
 
 
-def _create_order(request):
-    customer_name = request.POST.get('customer_name', '').strip()
-    customer_phone = request.POST.get('customer_phone', '').strip()
-    customer_address = request.POST.get('address', '').strip()
+def _validate_required(request):
+    required = {
+        'device_group': 'Тип техники',
+        'serial_number': 'IMEI / серийный номер',
+        'condition': 'Состояние',
+        'customer_name': 'Клиент',
+        'issue': 'Неисправность',
+        'password': 'Пароль',
+        'deadline': 'Крайний срок',
+    }
+    missing = []
+    for key, label in required.items():
+        value = (request.POST.get(key) or '').strip()
+        if not value or value == '- Не задано -':
+            missing.append(label)
+    return missing
+
+
+def _find_or_create_customer(name, phone='', address=''):
+    name = (name or '').strip()
+    phone = (phone or '').strip()
+    address = (address or '').strip()
     customer = None
-    if customer_name or customer_phone:
-        customer, _ = Customer.objects.get_or_create(
-            phone=customer_phone,
-            defaults={'name': customer_name or customer_phone or 'Клиент', 'address': customer_address},
-        )
+    if phone:
+        customer, _ = Customer.objects.get_or_create(phone=phone, defaults={'name': name or phone, 'address': address})
+    elif name:
+        customer, _ = Customer.objects.get_or_create(name=name, defaults={'phone': phone, 'address': address})
+    if customer:
         changed = False
-        if customer_name and customer.name != customer_name:
-            customer.name = customer_name
+        if name and customer.name != name:
+            customer.name = name
             changed = True
-        if customer_address and customer.address != customer_address:
-            customer.address = customer_address
+        if phone and customer.phone != phone:
+            customer.phone = phone
+            changed = True
+        if address and customer.address != address:
+            customer.address = address
             changed = True
         if changed:
             customer.save()
+    return customer
 
+
+def _create_order(request):
+    missing = _validate_required(request)
+    if missing:
+        messages.error(request, 'Заполните обязательные поля: ' + ', '.join(missing))
+        return
+    customer = _find_or_create_customer(request.POST.get('customer_name'), request.POST.get('customer_phone'), request.POST.get('address'))
+    manager = User.objects.filter(id=request.POST.get('manager')).first() or _current_user(request)
     executor = User.objects.filter(id=request.POST.get('executor')).first()
     order = Order.objects.create(
         order_type=request.POST.get('order_type') or 'ЗАКАЗ',
         customer=customer,
-        manager=_current_user(request),
+        manager=manager,
         executor=executor,
         serial_number=request.POST.get('serial_number', '').strip(),
         device_group=_get_or_create_by_name(DeviceGroup, request.POST.get('device_group')),
         device_brand=_get_or_create_by_name(DeviceBrand, request.POST.get('device_brand')),
         device_model=_get_or_create_by_name(DeviceModel, request.POST.get('device_model')),
-        condition=request.POST.get('condition', '').strip() or 'Потертости, царапины',
+        condition=request.POST.get('condition', '').strip(),
         issue=request.POST.get('issue', '').strip(),
         password=request.POST.get('password', '').strip(),
         ad_campaign=_get_or_create_by_name(AdCampaign, request.POST.get('ad_campaign')),
@@ -120,9 +138,58 @@ def _create_order(request):
         deadline=_parse_deadline(request.POST.get('deadline')),
     )
     if order.prepayment and order.prepayment > 0:
-        OrderPayment.objects.create(order=order, payment_type='income', cashbox='cash', amount=order.prepayment, comment='Предоплата')
+        OrderPayment.objects.create(order=order, payment_type='income', cashbox=request.POST.get('prepayment_cashbox') or 'cash', amount=order.prepayment, comment='Предоплата')
     OrderEvent.objects.create(order=order, user=_current_user(request), text='Создан новый заказ')
     messages.success(request, f'Заказ {order.order_number} создан')
+
+
+def _update_order(request):
+    order = Order.objects.filter(id=request.POST.get('order_id')).first()
+    if not order:
+        return
+    manager = User.objects.filter(id=request.POST.get('manager')).first()
+    executor = User.objects.filter(id=request.POST.get('executor')).first()
+    old_manager = order.manager.username if order.manager else 'Не назначен'
+    old_executor = order.executor.username if order.executor else 'Не назначен'
+    old_ad = str(order.ad_campaign) if order.ad_campaign else 'Не задано'
+
+    order.order_type = request.POST.get('order_type') or order.order_type
+    order.manager = manager
+    order.executor = executor
+    order.serial_number = request.POST.get('serial_number', '').strip()
+    order.device_group = _get_or_create_by_name(DeviceGroup, request.POST.get('device_group'))
+    order.device_brand = _get_or_create_by_name(DeviceBrand, request.POST.get('device_brand'))
+    order.device_model = _get_or_create_by_name(DeviceModel, request.POST.get('device_model'))
+    order.condition = request.POST.get('condition', '').strip()
+    order.issue = request.POST.get('issue', '').strip()
+    order.password = request.POST.get('password', '').strip()
+    order.ad_campaign = _get_or_create_by_name(AdCampaign, request.POST.get('ad_campaign'))
+    order.manager_notes = request.POST.get('manager_notes', '').strip()
+    order.estimated_price = money(request.POST.get('estimated_price'))
+    order.urgent = bool(request.POST.get('urgent'))
+    order.deadline = _parse_deadline(request.POST.get('deadline'))
+    order.save()
+
+    customer = order.customer or _find_or_create_customer(request.POST.get('customer_name'), request.POST.get('customer_phone'), request.POST.get('address'))
+    if customer:
+        customer.name = request.POST.get('customer_name', customer.name).strip() or customer.name
+        customer.phone = request.POST.get('customer_phone', customer.phone).strip()
+        customer.address = request.POST.get('address', customer.address).strip()
+        customer.save()
+        order.customer = customer
+        order.save(update_fields=['customer', 'updated_at'])
+
+    new_manager = order.manager.username if order.manager else 'Не назначен'
+    new_executor = order.executor.username if order.executor else 'Не назначен'
+    new_ad = str(order.ad_campaign) if order.ad_campaign else 'Не задано'
+    if old_manager != new_manager:
+        OrderEvent.objects.create(order=order, user=_current_user(request), text=f'Менеджер изменен: {old_manager} → {new_manager}')
+    if old_executor != new_executor:
+        OrderEvent.objects.create(order=order, user=_current_user(request), text=f'Исполнитель изменен: {old_executor} → {new_executor}')
+    if old_ad != new_ad:
+        OrderEvent.objects.create(order=order, user=_current_user(request), text=f'Реклама изменена: {old_ad} → {new_ad}')
+    OrderEvent.objects.create(order=order, user=_current_user(request), text='Информация о заказе сохранена')
+    messages.success(request, f'Заказ {order.order_number} сохранен')
 
 
 def _add_comment(request):
@@ -139,13 +206,7 @@ def _create_income_on_close(order, request):
     if order.payments.filter(payment_type='income', comment__icontains='Оплата при закрытии').exists():
         return
     cashbox = request.POST.get('cashbox') or request.POST.get('payment_cashbox') or 'cash'
-    OrderPayment.objects.create(
-        order=order,
-        payment_type='income',
-        cashbox=cashbox,
-        amount=order.total_price,
-        comment='Оплата при закрытии заказа',
-    )
+    OrderPayment.objects.create(order=order, payment_type='income', cashbox=cashbox, amount=order.total_price, comment='Оплата при закрытии заказа')
     order.payment_status = 'paid'
     order.save(update_fields=['payment_status', 'updated_at'])
     OrderEvent.objects.create(order=order, user=_current_user(request), text=f'Оплата при закрытии: {order.total_price} ₽')
@@ -160,15 +221,10 @@ def _change_status(request):
     old_status = order.get_status_display()
     order.status = new_status
     order.save(update_fields=['status', 'updated_at'])
-    close_note = ' Заказ закрыт.' if new_status in {'completed', 'cancelled'} else ''
     if new_status == 'completed':
         order.recalculate_money()
         _create_income_on_close(order, request)
-    OrderEvent.objects.create(
-        order=order,
-        user=_current_user(request),
-        text=f'Статус изменен: {old_status} → {order.get_status_display()}.{close_note}',
-    )
+    OrderEvent.objects.create(order=order, user=_current_user(request), text=f'Статус изменен: {old_status} → {order.get_status_display()}')
     messages.success(request, f'Статус заказа {order.order_number} обновлен')
 
 
@@ -210,6 +266,7 @@ def _add_order_payment(request):
         order.total_cost = (order.total_cost or Decimal('0')) + amount
         order.save(update_fields=['total_cost', 'updated_at'])
     order.recalculate_money()
+    OrderEvent.objects.create(order=order, user=_current_user(request), text=f"{'Приход' if payment_type == 'income' else 'Расход'}: {amount} ₽")
     messages.success(request, 'Платеж добавлен')
 
 
@@ -218,6 +275,8 @@ def dashboard(request):
         action = request.POST.get('action')
         if action == 'create_order':
             _create_order(request)
+        elif action == 'update_order':
+            _update_order(request)
         elif action == 'add_comment':
             _add_comment(request)
         elif action == 'change_status':
@@ -228,7 +287,7 @@ def dashboard(request):
             _add_order_payment(request)
         return redirect('dashboard')
 
-    orders = Order.objects.select_related('customer', 'device_group', 'device_brand', 'device_model', 'manager', 'executor').prefetch_related('events__user', 'comments__user', 'services', 'payments').order_by('-created_at')[:100]
+    orders = Order.objects.select_related('customer', 'device_group', 'device_brand', 'device_model', 'manager', 'executor', 'ad_campaign').prefetch_related('events__user', 'comments__user', 'services', 'payments').order_by('-created_at')[:100]
     stats = {
         'orders_total': Order.objects.count(),
         'orders_new': Order.objects.filter(status='new').count(),
@@ -246,7 +305,7 @@ def dashboard(request):
         'device_groups': list(DeviceGroup.objects.order_by('name').values_list('name', flat=True)) or DEFAULT_DEVICE_GROUPS,
         'device_brands': list(DeviceBrand.objects.order_by('name').values_list('name', flat=True)) or DEFAULT_BRANDS,
         'device_models': list(DeviceModel.objects.order_by('name').values_list('name', flat=True)) or DEFAULT_MODELS,
-        'ad_campaigns': list(AdCampaign.objects.order_by('name').values_list('name', flat=True)),
+        'ad_campaigns': list(AdCampaign.objects.order_by('name').values_list('name', flat=True)) or ['Яндекс', 'Google', 'Авито', 'Рекомендация'],
         'users': User.objects.order_by('username'),
         'status_groups': STATUS_GROUPS,
         'popular_services': popular_services,
@@ -321,13 +380,4 @@ def company_dashboard(request):
         daily_labels.append(day.strftime('%d.%m'))
         daily_counts.append(day_orders.count())
         daily_revenue.append(float(day_orders.aggregate(total=Sum('total_price'))['total'] or 0))
-    return render(request, 'crm/company.html', {
-        'kpi': kpi,
-        'status_stats': status_stats,
-        'masters': masters,
-        'recent_orders': recent_orders,
-        'overdue_orders': overdue_orders,
-        'daily_labels': daily_labels,
-        'daily_counts': daily_counts,
-        'daily_revenue': daily_revenue,
-    })
+    return render(request, 'crm/company.html', {'kpi': kpi, 'status_stats': status_stats, 'masters': masters, 'recent_orders': recent_orders, 'overdue_orders': overdue_orders, 'daily_labels': daily_labels, 'daily_counts': daily_counts, 'daily_revenue': daily_revenue})
