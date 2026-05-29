@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fadeev-CRM - Финансы</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f5f7;color:#263238;font-size:14px}.app{display:grid;grid-template-columns:190px 1fr;min-height:100vh}.sidebar{background:#252e34;color:#dfe7eb}.avatar{width:96px;height:96px;border-radius:50%;background:#ff7a00;margin:16px auto 20px;display:grid;place-items:center;font-size:40px}.nav{padding:0 4px}.nav-item{height:48px;display:flex;align-items:center;gap:12px;color:#e4ebef;text-decoration:none;padding:0 18px;border-left:4px solid transparent;font-size:16px}.nav-item:hover{background:#3c464d}.nav-item.active{background:#5d666d;color:#fff;border-left-color:#e91e63}.nav-sep{height:1px;background:#566168;margin:10px 18px}.topbar{height:42px;background:#fff;border-bottom:1px solid #dfe3e6;display:flex;align-items:center;justify-content:space-between;padding:0 16px}.title{font-size:20px;font-weight:700}.wrap{padding:16px}.tabs{display:flex;gap:18px;border-bottom:1px solid #dfe3e6;margin-bottom:14px}.tab{padding:10px 0;color:#4b5563;text-decoration:none}.tab.active{color:#1976d2;border-bottom:2px solid #1976d2}.grid{display:grid;grid-template-columns:220px 1fr;gap:14px}.account,.card,.kpi{background:#fff;border:1px solid #dfe3e6;border-radius:8px;padding:14px}.account{margin-bottom:10px}.account.active{border:2px solid #1976d2}.account-title,.kpi-label{color:#6b7280;font-size:12px}.account-sum,.kpi-value{font-size:20px;font-weight:800;margin-top:8px}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.green{color:#00a651}.red{color:#e53935}.form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.form select,.form input{height:34px;border:1px solid #cbd2d8;border-radius:4px;padding:0 9px}.form input[name=comment]{min-width:260px}.btn{border:1px solid #00a651;background:#00a651;color:#fff;border-radius:4px;padding:8px 12px;cursor:pointer}table{width:100%;border-collapse:collapse;background:#fff}th{background:#eef0f2;color:#4b5563;font-size:12px;text-align:left;padding:8px;border-bottom:1px solid #d9dee3}td{padding:9px 8px;border-bottom:1px solid #eef1f3;white-space:nowrap}.muted{color:#7b8790;font-size:12px}.right{text-align:right}.order{color:#1976d2;font-weight:700}.total-row td{font-weight:800;background:#f8fafc}.message{background:#e8f7ee;border:1px solid #b8e2c5;padding:8px 10px;border-radius:4px;margin-bottom:10px}@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="avatar">CRM</div>
+  <nav class="nav">
+    <a class="nav-item" href="/company/">Моя компания</a>
+    <div class="nav-sep"></div>
+    <a class="nav-item" href="#">Задачи</a>
+    <a class="nav-item" href="#">Обращения</a>
+    <a class="nav-item" href="#">Записи</a>
+    <a class="nav-item" href="/">Заказы</a>
+    <a class="nav-item" href="#">Продажи</a>
+    <a class="nav-item" href="#">Счета</a>
+    <a class="nav-item active" href="/finance/">Финансы</a>
+    <a class="nav-item" href="#">Склады</a>
+    <a class="nav-item" href="#">Контакты</a>
+    <div class="nav-sep"></div>
+    <a class="nav-item" href="#">Чаты</a>
+    <a class="nav-item" href="#">Звонки</a>
+    <a class="nav-item" href="#">Отчеты</a>
+    <div class="nav-sep"></div>
+    <a class="nav-item" href="/settings/users/">Настройки</a>
+  </nav>
+</aside>
+<main>
+  <div class="topbar"><div class="title">Финансы</div><div>Помощь</div></div>
+  <div class="wrap">
+    <div class="tabs">
+      <a class="tab active" href="/finance/">Транзакции</a><a class="tab" href="#">Платежные ссылки</a><a class="tab" href="#">Возвраты</a><a class="tab" href="#">Взаиморасчеты</a><a class="tab" href="#">Расчет зарплаты</a><a class="tab" href="#">Начисления зарплаты</a>
+    </div>
+    {% if messages %}{% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}{% endif %}
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Наличные</div><div class="kpi-value">{{ cash_balance }} ₽</div></div>
+      <div class="kpi"><div class="kpi-label">Безналичные</div><div class="kpi-value">{{ card_balance }} ₽</div></div>
+      <div class="kpi"><div class="kpi-label">Приход</div><div class="kpi-value green">{{ total_income }} ₽</div></div>
+      <div class="kpi"><div class="kpi-label">Расход</div><div class="kpi-value red">{{ total_expense }} ₽</div></div>
+    </div>
+    <div class="grid">
+      <div><div class="account"><div class="account-title">Безналичная</div><div class="account-sum">{{ card_balance }} ₽</div></div><div class="account active"><div class="account-title">Наличная</div><div class="account-sum">{{ cash_balance }} ₽</div></div></div>
+      <section class="card">
+        <h2>Транзакции</h2>
+        <form method="post" class="form">{% csrf_token %}
+          <select name="action"><option value="income">Приход</option><option value="expense">Расход</option></select>
+          <select name="order_id" required><option value="">Заказ</option>{% for order in orders %}<option value="{{ order.id }}">{{ order.order_number }}{% if order.customer %} — {{ order.customer.name }}{% endif %}</option>{% endfor %}</select>
+          <select name="cashbox"><option value="cash">Наличные</option><option value="card">Безналичные</option></select>
+          <input name="amount" type="number" step="0.01" min="0" placeholder="Сумма" required>
+          <input name="comment" placeholder="Комментарий">
+          <button class="btn" type="submit">Добавить</button>
+        </form>
+        <table>
+          <thead><tr><th>Создано</th><th>Комментарий</th><th>Касса</th><th class="right">Приход</th><th class="right">Расход</th></tr></thead>
+          <tbody>{% for payment in payments %}<tr><td>{% if payment.order.manager %}{{ payment.order.manager.username }}{% else %}—{% endif %}<br><span class="muted">{{ payment.created_at|date:'d.m.Y H:i' }}</span></td><td>{% if payment.payment_type == 'income' %}Оплата по заказу{% else %}Расход по заказу{% endif %} <span class="order">{{ payment.order.order_number }}</span>{% if payment.order.customer %} ({{ payment.order.customer.name }}){% endif %}<br><span class="muted">{{ payment.comment|default:'—' }}</span></td><td>{% if payment.cashbox == 'cash' %}Наличная{% else %}Безналичная{% endif %}</td><td class="right green">{% if payment.payment_type == 'income' %}{{ payment.amount }}{% else %}0{% endif %}</td><td class="right red">{% if payment.payment_type == 'expense' %}{{ payment.amount }}{% else %}0{% endif %}</td></tr>{% empty %}<tr><td colspan="5">Финансовых операций пока нет.</td></tr>{% endfor %}<tr class="total-row"><td colspan="3" class="right">Итого</td><td class="right green">{{ total_income }} ₽</td><td class="right red">{{ total_expense }} ₽</td></tr></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</main>
+</div>
+</body>
+</html>
