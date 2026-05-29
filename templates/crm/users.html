@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fadeev-CRM — Пользователи</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Arial,sans-serif;background:#f3f5f7;color:#263238;font-size:14px}.app{display:grid;grid-template-columns:190px 1fr;height:100vh}.sidebar{background:#252e34;color:#dfe7eb;overflow:auto}.avatar{width:96px;height:96px;border-radius:50%;background:#ff7a00;margin:16px auto 20px;display:grid;place-items:center;font-size:46px}.nav{padding:0 4px}.nav-item{height:48px;display:flex;align-items:center;gap:12px;color:#e4ebef;text-decoration:none;padding:0 18px;border-left:4px solid transparent;font-size:16px}.nav-item:hover{background:#3c464d}.nav-item.active{background:#5d666d;color:white;border-left-color:#e91e63}.nav-sep{height:1px;background:#566168;margin:10px 18px}.main{display:flex;flex-direction:column;min-width:0}.topbar{height:52px;background:white;border-bottom:1px solid #dfe3e6;display:flex;align-items:center;justify-content:space-between;padding:0 22px}.brand{font-size:20px;font-weight:800}.content{padding:22px;overflow:auto}.grid{display:grid;grid-template-columns:380px 1fr;gap:18px}.card{background:white;border:1px solid #dfe3e6;border-radius:8px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.05)}.card h2{margin:0 0 16px}.field{margin-bottom:12px}.field label{display:block;font-weight:700;margin-bottom:6px}input,select{width:100%;height:38px;border:1px solid #cfd6dc;border-radius:4px;padding:0 10px}.check{display:flex;align-items:center;gap:8px}.check input{width:auto;height:auto}.btn{border:1px solid #cbd2d8;background:white;border-radius:4px;padding:9px 14px;cursor:pointer;text-decoration:none;color:#263238}.btn-green{background:#00a651;color:white;border-color:#00a651;font-weight:700}.btn-red{background:#d32f2f;color:white;border-color:#d32f2f}.btn-blue{background:#1976d2;color:white;border-color:#1976d2}.messages{margin-bottom:14px}.message{background:#e8f7ee;border:1px solid #b8e2c5;padding:10px;border-radius:4px}table{width:100%;border-collapse:collapse}th{background:#eef0f2;color:#4b5563;text-align:left;padding:10px;border-bottom:1px solid #d9dee3}td{padding:10px;border-bottom:1px solid #eef1f3}.role{display:inline-block;border-radius:4px;padding:4px 8px;color:white;font-weight:700;font-size:12px}.role-admin{background:#7c3aed}.role-manager{background:#1976d2}.role-master{background:#00a651}.status{font-weight:700}.status-on{color:#00a651}.status-off{color:#d32f2f}.muted{color:#7b8790;font-size:12px}@media(max-width:1000px){.app{grid-template-columns:1fr}.sidebar{display:none}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="avatar">👨‍🔧</div>
+  <nav class="nav">
+    <a class="nav-item" href="/company/">⌂ Моя компания</a><div class="nav-sep"></div><a class="nav-item" href="#">✓ Задачи</a><a class="nav-item" href="#">▱ Обращения</a><a class="nav-item" href="#">☷ Записи</a><a class="nav-item" href="/">▣ Заказы</a><a class="nav-item" href="#">🛒 Продажи</a><a class="nav-item" href="#">▤ Счета</a><a class="nav-item" href="#">◎ Финансы</a><a class="nav-item" href="#">▦ Склады</a><a class="nav-item" href="#">♚ Контакты</a><div class="nav-sep"></div><a class="nav-item" href="#">☏ Чаты</a><a class="nav-item" href="#">☎ Звонки</a><a class="nav-item" href="#">▦ Отчеты</a><div class="nav-sep"></div><a class="nav-item active" href="/settings/users/">⚙ Настройки</a>
+  </nav>
+</aside>
+<main class="main">
+  <div class="topbar"><div class="brand">Fadeev-CRM · Пользователи и роли</div><a class="btn" href="/">← Заказы</a></div>
+  <div class="content">
+    {% if messages %}<div class="messages">{% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}</div>{% endif %}
+    <div class="grid">
+      <section class="card">
+        <h2>+ Добавить сотрудника</h2>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_user">
+          <div class="field"><label>Логин / Email</label><input name="username" required placeholder="manager@fadeev-crm.ru"></div>
+          <div class="field"><label>Пароль</label><input name="password" type="password" required placeholder="Минимум 8 символов"></div>
+          <div class="field"><label>ФИО</label><input name="full_name" placeholder="Иванов Иван"></div>
+          <div class="field"><label>Телефон</label><input name="phone" placeholder="+7 ..."></div>
+          <div class="field"><label>Роль</label><select name="role">{% for value,label in role_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+          <div class="field check"><input name="is_active" type="checkbox" checked><span>Активен</span></div>
+          <button class="btn btn-green" type="submit">Создать сотрудника</button>
+        </form>
+      </section>
+      <section class="card">
+        <h2>Сотрудники</h2>
+        <table>
+          <thead><tr><th>Пользователь</th><th>Роль</th><th>Телефон</th><th>Статус</th><th>Последний вход</th><th></th></tr></thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td><b>{{ user.first_name|default:user.username }}</b><br><span class="muted">{{ user.username }}</span></td>
+              <td>{% if user.profile.role == 'admin' %}<span class="role role-admin">Администратор</span>{% elif user.profile.role == 'master' %}<span class="role role-master">Мастер</span>{% else %}<span class="role role-manager">Менеджер</span>{% endif %}</td>
+              <td>{{ user.profile.phone|default:'—' }}</td>
+              <td>{% if user.is_active %}<span class="status status-on">Активен</span>{% else %}<span class="status status-off">Заблокирован</span>{% endif %}</td>
+              <td>{% if user.last_login %}{{ user.last_login|date:'d.m.Y H:i' }}{% else %}—{% endif %}</td>
+              <td><form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_user"><input type="hidden" name="user_id" value="{{ user.id }}"><button class="btn {% if user.is_active %}btn-red{% else %}btn-blue{% endif %}" type="submit">{% if user.is_active %}Заблокировать{% else %}Активировать{% endif %}</button></form></td>
+            </tr>
+            {% empty %}<tr><td colspan="6">Пользователей пока нет</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</main>
+</div>
+</body>
+</html>
