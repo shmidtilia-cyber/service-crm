@@ -17,6 +17,7 @@ from .models import (
     OrderEvent,
     OrderService,
     Product,
+    UserProfile,
 )
 
 
@@ -90,10 +91,13 @@ def _create_order(request):
         if changed:
             customer.save()
 
+    executor = User.objects.filter(id=request.POST.get('executor')).first()
+
     order = Order.objects.create(
         order_type=request.POST.get('order_type') or 'ЗАКАЗ',
         customer=customer,
         manager=_current_user(request),
+        executor=executor,
         serial_number=request.POST.get('serial_number', '').strip(),
         device_group=_get_or_create_by_name(DeviceGroup, request.POST.get('device_group')),
         device_brand=_get_or_create_by_name(DeviceBrand, request.POST.get('device_brand')),
@@ -202,6 +206,60 @@ def dashboard(request):
         'ad_campaigns': list(AdCampaign.objects.order_by('name').values_list('name', flat=True)),
         'users': User.objects.order_by('username'),
         'status_groups': STATUS_GROUPS,
+    })
+
+
+def users_settings(request):
+    """Settings page for creating employees and assigning CRM roles."""
+    # Ensure all existing Django users have a CRM profile.
+    for user in User.objects.all():
+        UserProfile.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        user_id = request.POST.get('user_id')
+
+        if action == 'toggle_user':
+            user = User.objects.filter(id=user_id).first()
+            if user:
+                user.is_active = not user.is_active
+                user.save(update_fields=['is_active'])
+                messages.success(request, 'Статус пользователя обновлен')
+            return redirect('users_settings')
+
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+        full_name = request.POST.get('full_name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        role = request.POST.get('role', 'manager')
+        is_active = bool(request.POST.get('is_active'))
+
+        if not username:
+            messages.error(request, 'Укажите логин пользователя')
+            return redirect('users_settings')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Пользователь с таким логином уже существует')
+            return redirect('users_settings')
+
+        user = User(username=username, email=username if '@' in username else '', first_name=full_name, is_active=is_active)
+        user.set_password(password or '12345678')
+        user.save()
+
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.full_name = full_name
+        profile.phone = phone
+        profile.role = role if role in dict(UserProfile.ROLE_CHOICES) else 'manager'
+        profile.can_manage_users = profile.role == 'admin'
+        profile.save()
+
+        messages.success(request, 'Пользователь создан')
+        return redirect('users_settings')
+
+    users = User.objects.select_related('profile').order_by('username')
+    return render(request, 'crm/users.html', {
+        'users': users,
+        'role_choices': UserProfile.ROLE_CHOICES,
     })
 
 
