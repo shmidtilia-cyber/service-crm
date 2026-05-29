@@ -15,12 +15,6 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField('Роль', max_length=30, choices=ROLE_CHOICES, default='manager')
-    full_name = models.CharField('ФИО', max_length=255, blank=True)
-    position = models.CharField('Должность', max_length=255, blank=True)
-    phone = models.CharField('Телефон', max_length=50, blank=True)
-    can_manage_users = models.BooleanField('Может управлять пользователями', default=False)
-    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
-    updated_at = models.DateTimeField('Дата обновления', auto_now=True)
 
     def __str__(self):
         return f'{self.user.username} — {self.get_role_display()}'
