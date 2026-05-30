@@ -2,8 +2,21 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import AdCampaign, DeviceBrand, DeviceGroup, DeviceModel, Order, OrderComment, OrderEvent, OrderPayment, OrderService
-from .views import DEFAULT_BRANDS, DEFAULT_DEVICE_GROUPS, DEFAULT_MODELS, STATUS_GROUPS, _add_order_payment, _add_comment, _change_status, _current_user, _save_service, _update_order
+from .models import AdCampaign, DeviceBrand, DeviceGroup, DeviceModel, Order, OrderService
+from .views import DEFAULT_BRANDS, DEFAULT_DEVICE_GROUPS, DEFAULT_MODELS, STATUS_GROUPS, _add_order_payment, _add_comment, _change_status, _save_service, _update_order
+
+
+def _redirect_after_save(request, order):
+    close_after_save = request.POST.get('close_after_save') == '1'
+    if close_after_save:
+        return redirect('dashboard')
+
+    tab = request.POST.get('active_tab') or 'main'
+    allowed_tabs = {'main', 'services', 'payments', 'comments', 'history', 'files'}
+    if tab not in allowed_tabs:
+        tab = 'main'
+
+    return redirect(f'/orders/{order.id}/?tab={tab}')
 
 
 def order_detail(request, order_id):
@@ -27,7 +40,11 @@ def order_detail(request, order_id):
             _add_comment(request)
         else:
             messages.error(request, 'Неизвестное действие')
-        return redirect('order_detail', order_id=order.id)
+        return _redirect_after_save(request, order)
+
+    active_tab = request.GET.get('tab') or 'main'
+    if active_tab not in {'main', 'services', 'payments', 'comments', 'history', 'files'}:
+        active_tab = 'main'
 
     popular_services = OrderService.objects.values('name').order_by('name')[:12]
 
@@ -36,6 +53,7 @@ def order_detail(request, order_id):
         'users': User.objects.order_by('username'),
         'status_groups': STATUS_GROUPS,
         'popular_services': popular_services,
+        'active_tab': active_tab,
         'device_groups': list(DeviceGroup.objects.order_by('name').values_list('name', flat=True)) or DEFAULT_DEVICE_GROUPS,
         'device_brands': list(DeviceBrand.objects.order_by('name').values_list('name', flat=True)) or DEFAULT_BRANDS,
         'device_models': list(DeviceModel.objects.order_by('name').values_list('name', flat=True)) or DEFAULT_MODELS,
