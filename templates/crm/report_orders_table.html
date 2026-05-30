@@ -1,0 +1,32 @@
+<table>
+<thead>
+<tr>
+    <th>Заказ</th>
+    <th>Статус</th>
+    <th>Создан</th>
+    <th>Клиент</th>
+    <th>Менеджер</th>
+    <th>Исполнитель</th>
+    <th>Реклама</th>
+    <th class="right">Итого</th>
+    <th class="right">Прибыль</th>
+</tr>
+</thead>
+<tbody>
+{% for order in rows %}
+<tr>
+    <td><span class="order">{{ order.order_number }}</span></td>
+    <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+    <td>{{ order.created_at|date:'d.m.Y H:i' }}</td>
+    <td>{% if order.customer %}{{ order.customer.name }}<br><span class="muted">{{ order.customer.phone }}</span>{% else %}—{% endif %}</td>
+    <td>{% if order.manager %}{% if order.manager.first_name %}{{ order.manager.first_name }} {{ order.manager.last_name }}{% else %}{{ order.manager.username|cut:'@gmail.com'|cut:'@mail.ru'|cut:'@yandex.ru' }}{% endif %}{% else %}—{% endif %}</td>
+    <td>{% if order.executor %}{% if order.executor.first_name %}{{ order.executor.first_name }} {{ order.executor.last_name }}{% else %}{{ order.executor.username|cut:'@gmail.com'|cut:'@mail.ru'|cut:'@yandex.ru' }}{% endif %}{% else %}—{% endif %}</td>
+    <td>{{ order.ad_campaign|default:'—' }}</td>
+    <td class="right">{{ order.total_price }} ₽</td>
+    <td class="right">{{ order.profit }} ₽</td>
+</tr>
+{% empty %}
+<tr><td colspan="9">Данных за выбранный период нет.</td></tr>
+{% endfor %}
+</tbody>
+</table>
