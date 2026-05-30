@@ -114,7 +114,7 @@ def _create_order(request):
     missing = _validate_required(request)
     if missing:
         messages.error(request, 'Заполните обязательные поля: ' + ', '.join(missing))
-        return
+        return None
     customer = _find_or_create_customer(request.POST.get('customer_name'), request.POST.get('customer_phone'), request.POST.get('address'))
     manager = User.objects.filter(id=request.POST.get('manager')).first() or _current_user(request)
     executor = User.objects.filter(id=request.POST.get('executor')).first()
@@ -141,12 +141,13 @@ def _create_order(request):
         OrderPayment.objects.create(order=order, payment_type='income', cashbox=request.POST.get('prepayment_cashbox') or 'cash', amount=order.prepayment, comment='Предоплата')
     OrderEvent.objects.create(order=order, user=_current_user(request), text='Создан новый заказ')
     messages.success(request, f'Заказ {order.order_number} создан')
+    return order
 
 
 def _update_order(request):
     order = Order.objects.filter(id=request.POST.get('order_id')).first()
     if not order:
-        return
+        return None
     manager = User.objects.filter(id=request.POST.get('manager')).first()
     executor = User.objects.filter(id=request.POST.get('executor')).first()
     old_manager = order.manager.username if order.manager else 'Не назначен'
@@ -190,6 +191,7 @@ def _update_order(request):
         OrderEvent.objects.create(order=order, user=_current_user(request), text=f'Реклама изменена: {old_ad} → {new_ad}')
     OrderEvent.objects.create(order=order, user=_current_user(request), text='Информация о заказе сохранена')
     messages.success(request, f'Заказ {order.order_number} сохранен')
+    return order
 
 
 def _add_comment(request):
@@ -198,6 +200,7 @@ def _add_comment(request):
     if order and text:
         OrderComment.objects.create(order=order, user=_current_user(request), text=text)
         messages.success(request, f'Комментарий добавлен в заказ {order.order_number}')
+    return order
 
 
 def _create_income_on_close(order, request):
@@ -217,7 +220,7 @@ def _change_status(request):
     new_status = request.POST.get('status')
     valid_statuses = {status for group in STATUS_GROUPS.values() for status, _ in group}
     if not order or new_status not in valid_statuses:
-        return
+        return order
     old_status = order.get_status_display()
     order.status = new_status
     order.save(update_fields=['status', 'updated_at'])
@@ -226,12 +229,13 @@ def _change_status(request):
         _create_income_on_close(order, request)
     OrderEvent.objects.create(order=order, user=_current_user(request), text=f'Статус изменен: {old_status} → {order.get_status_display()}')
     messages.success(request, f'Статус заказа {order.order_number} обновлен')
+    return order
 
 
 def _save_service(request):
     order = Order.objects.filter(id=request.POST.get('order_id')).first()
     if not order:
-        return
+        return None
     service_id = request.POST.get('service_id')
     service = OrderService.objects.filter(id=service_id, order=order).first() if service_id else None
     if service is None:
@@ -248,19 +252,20 @@ def _save_service(request):
     service.save()
     OrderEvent.objects.create(order=order, user=_current_user(request), text=('Добавлена услуга: ' if is_new else 'Изменена услуга: ') + service.name)
     messages.success(request, f'Услуга сохранена в заказе {order.order_number}')
+    return order
 
 
 def _add_order_payment(request):
     order = Order.objects.filter(id=request.POST.get('order_id')).first()
     if not order:
-        return
+        return None
     payment_type = request.POST.get('payment_type') or 'income'
     cashbox = request.POST.get('cashbox') or 'cash'
     amount = money(request.POST.get('amount'))
     comment = request.POST.get('payment_comment', '').strip()
     if amount <= 0:
         messages.error(request, 'Сумма платежа должна быть больше 0')
-        return
+        return order
     OrderPayment.objects.create(order=order, payment_type=payment_type, cashbox=cashbox, amount=amount, comment=comment)
     if payment_type == 'expense':
         order.total_cost = (order.total_cost or Decimal('0')) + amount
@@ -268,23 +273,38 @@ def _add_order_payment(request):
     order.recalculate_money()
     OrderEvent.objects.create(order=order, user=_current_user(request), text=f"{'Приход' if payment_type == 'income' else 'Расход'}: {amount} ₽")
     messages.success(request, 'Платеж добавлен')
+    return order
+
+
+def _tab_for_action(action):
+    return {
+        'save_service': 'services',
+        'add_payment': 'payments',
+        'add_comment': 'comments',
+        'change_status': 'main',
+        'update_order': 'main',
+    }.get(action, 'main')
 
 
 def dashboard(request):
     if request.method == 'POST':
         action = request.POST.get('action')
+        order = None
         if action == 'create_order':
-            _create_order(request)
+            order = _create_order(request)
         elif action == 'update_order':
-            _update_order(request)
+            order = _update_order(request)
         elif action == 'add_comment':
-            _add_comment(request)
+            order = _add_comment(request)
         elif action == 'change_status':
-            _change_status(request)
+            order = _change_status(request)
         elif action == 'save_service':
-            _save_service(request)
+            order = _save_service(request)
         elif action == 'add_payment':
-            _add_order_payment(request)
+            order = _add_order_payment(request)
+
+        if order and action != 'create_order' and request.POST.get('close_after_save') != '1':
+            return redirect(f'/orders/{order.id}/?tab={_tab_for_action(action)}')
         return redirect('dashboard')
 
     orders = Order.objects.select_related('customer', 'device_group', 'device_brand', 'device_model', 'manager', 'executor', 'ad_campaign').prefetch_related('events__user', 'comments__user', 'services', 'payments').order_by('-created_at')[:100]
