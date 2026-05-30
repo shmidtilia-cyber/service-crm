@@ -1,29 +1,467 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fadeev-CRM — Настройки</title>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef2f5;color:#263238;font-size:14px}.app{display:grid;grid-template-columns:190px 1fr;min-height:100vh}.sidebar{background:#252e34;color:#dfe7eb}.avatar{width:96px;height:96px;border-radius:50%;background:#ff7a00;margin:16px auto 20px;display:grid;place-items:center;font-size:32px;font-weight:800}.nav{padding:0 4px}.nav-item{height:48px;display:flex;align-items:center;gap:12px;color:#e4ebef;text-decoration:none;padding:0 18px;border-left:4px solid transparent;font-size:16px}.nav-item:hover{background:#3c464d}.nav-item.active{background:#5d666d;color:#fff;border-left-color:#e91e63}.nav-sep{height:1px;background:#566168;margin:10px 18px}.topbar{height:54px;background:#fff;border-bottom:1px solid #dfe3e6;display:flex;align-items:center;justify-content:space-between;padding:0 18px}.title{font-size:24px;font-weight:600}.layout{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 54px)}.menu{background:#fff;border-right:1px solid #dfe3e6;padding:14px 0}.menu button{display:block;width:100%;border:0;background:#fff;text-align:left;padding:12px 18px;cursor:pointer;font-size:15px}.menu button:hover{background:#f3f6f9}.menu button.active{background:#eaf3ff;color:#1976d2;border-left:4px solid #1976d2;padding-left:14px}.content{padding:18px}.section{display:none}.section.active{display:block}.card{background:#fff;border:1px solid #dfe3e6;border-radius:8px;padding:16px;margin-bottom:14px}.card-title{font-size:20px;font-weight:700;margin-bottom:14px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px;margin-bottom:12px}.field label{font-weight:700;color:#4b5563}.field input,.field select,.field textarea{min-height:36px;border:1px solid #cbd2d8;border-radius:4px;padding:8px 10px}.field textarea{min-height:90px}.btn{border:1px solid #1976d2;background:#1976d2;color:#fff;border-radius:4px;padding:8px 12px;cursor:pointer}.btn-green{background:#00a651;border-color:#00a651}.btn-red{background:#e53935;border-color:#e53935}.btn-light{background:#fff;color:#263238;border-color:#cbd2d8}.btn-sm{padding:5px 8px;font-size:12px}table{width:100%;border-collapse:collapse;background:#fff}th{background:#eef0f2;color:#4b5563;font-size:12px;text-align:left;padding:9px;border-bottom:1px solid #d9dee3}td{padding:9px;border-bottom:1px solid #eef1f3;vertical-align:top}.right{text-align:right}.muted{color:#7b8790;font-size:12px}.message{background:#e8f7ee;border:1px solid #b8e2c5;padding:8px 10px;border-radius:4px;margin-bottom:10px}.pill{display:inline-flex;color:#fff;border-radius:4px;padding:4px 8px;font-size:12px;font-weight:700}.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.tab{border:1px solid #cbd2d8;background:#fff;border-radius:4px;padding:7px 12px;cursor:pointer}.tab.active{background:#1976d2;color:#fff;border-color:#1976d2}.dict{display:none}.dict.active{display:block}@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.layout{grid-template-columns:1fr}.menu{display:flex;overflow:auto}.menu button{white-space:nowrap}.grid2{grid-template-columns:1fr}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fadeev-CRM — Настройки</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef2f5;
+            color: #263238;
+            font-size: 14px;
+        }
+        a { color: inherit; text-decoration: none; }
+        .app { display: grid; grid-template-columns: 210px 1fr; min-height: 100vh; }
+        .sidebar { background: #252e34; color: #dfe7eb; }
+        .avatar {
+            width: 96px; height: 96px; border-radius: 50%; background: #ff7a00;
+            margin: 16px auto 20px; display: grid; place-items: center;
+            font-size: 28px; font-weight: 800; color: #fff;
+        }
+        .nav { padding: 0 4px; }
+        .nav-item {
+            height: 48px; display: flex; align-items: center; gap: 12px;
+            color: #e4ebef; padding: 0 18px; border-left: 4px solid transparent;
+            font-size: 15px;
+        }
+        .nav-item:hover { background: #3c464d; }
+        .nav-item.active { background: #5d666d; color: #fff; border-left-color: #e91e63; }
+        .nav-sep { height: 1px; background: #566168; margin: 10px 18px; }
+        .topbar {
+            height: 58px; background: #fff; border-bottom: 1px solid #dfe3e6;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+        }
+        .title { font-size: 24px; font-weight: 700; }
+        .top-actions { display: flex; align-items: center; gap: 10px; }
+        .badge { background: #eef5ff; color: #1976d2; border-radius: 20px; padding: 7px 12px; font-size: 12px; font-weight: 700; }
+        .layout { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 58px); }
+        .settings-menu { background: #fff; border-right: 1px solid #dfe3e6; padding: 14px 0; }
+        .settings-menu button {
+            display: flex; width: 100%; border: 0; background: #fff; text-align: left;
+            padding: 13px 18px; cursor: pointer; font-size: 15px; color: #374151;
+            align-items: center; justify-content: space-between; border-left: 4px solid transparent;
+        }
+        .settings-menu button:hover { background: #f3f6f9; }
+        .settings-menu button.active { background: #eaf3ff; color: #1976d2; border-left-color: #1976d2; font-weight: 700; }
+        .settings-menu small { color: #9aa5ad; font-weight: 400; }
+        .content { padding: 22px; max-width: 1280px; width: 100%; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .section-head { margin-bottom: 18px; }
+        .section-title { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
+        .section-subtitle { color: #6b7280; line-height: 1.5; margin: 0; }
+        .card { background: #fff; border: 1px solid #dfe3e6; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(30, 41, 59, 0.04); }
+        .card-title { font-size: 18px; font-weight: 800; margin-bottom: 14px; }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .field { display: grid; gap: 6px; margin-bottom: 12px; }
+        .field label { font-weight: 700; color: #4b5563; }
+        .field input, .field select, .field textarea {
+            min-height: 38px; border: 1px solid #cbd2d8; border-radius: 7px; padding: 8px 10px;
+            background: #fff; color: #263238;
+        }
+        .field textarea { min-height: 92px; resize: vertical; }
+        .checks { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 8px 0 12px; }
+        .check { display: inline-flex; align-items: center; gap: 7px; color: #4b5563; }
+        .btn { border: 1px solid #1976d2; background: #1976d2; color: #fff; border-radius: 7px; padding: 9px 13px; cursor: pointer; font-weight: 700; }
+        .btn-green { background: #00a651; border-color: #00a651; }
+        .btn-red { background: #e53935; border-color: #e53935; }
+        .btn-light { background: #fff; color: #263238; border-color: #cbd2d8; }
+        .btn-sm { padding: 6px 9px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th { background: #eef0f2; color: #4b5563; font-size: 12px; text-align: left; padding: 10px; border-bottom: 1px solid #d9dee3; }
+        td { padding: 10px; border-bottom: 1px solid #eef1f3; vertical-align: top; }
+        .right { text-align: right; }
+        .muted { color: #7b8790; font-size: 12px; }
+        .message { background: #e8f7ee; border: 1px solid #b8e2c5; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; }
+        .pill { display: inline-flex; color: #fff; border-radius: 6px; padding: 5px 9px; font-size: 12px; font-weight: 800; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+        .tab { border: 1px solid #cbd2d8; background: #fff; border-radius: 7px; padding: 8px 12px; cursor: pointer; font-weight: 700; }
+        .tab.active { background: #1976d2; color: #fff; border-color: #1976d2; }
+        .dict { display: none; }
+        .dict.active { display: block; }
+        .empty-box { border: 1px dashed #cbd2d8; border-radius: 10px; padding: 18px; color: #6b7280; background: #fafbfc; line-height: 1.55; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .stat { background: #fff; border: 1px solid #dfe3e6; border-radius: 12px; padding: 14px; }
+        .stat b { display: block; font-size: 22px; margin-bottom: 4px; }
+        @media(max-width: 980px) {
+            .app { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .layout { grid-template-columns: 1fr; }
+            .settings-menu { display: flex; overflow: auto; padding: 8px; }
+            .settings-menu button { white-space: nowrap; min-width: 190px; border-left: 0; border-radius: 8px; }
+            .grid2, .grid3, .stat-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 <div class="app">
-<aside class="sidebar"><div class="avatar">CRM</div><nav class="nav"><a class="nav-item" href="/company/">Моя компания</a><div class="nav-sep"></div><a class="nav-item" href="/">Заказы</a><a class="nav-item" href="/finance/">Финансы</a><a class="nav-item" href="/reports/">Отчеты</a><div class="nav-sep"></div><a class="nav-item active" href="/settings/">Настройки</a></nav></aside>
-<main><div class="topbar"><div class="title">Настройки</div><div class="muted">Fadeev-CRM</div></div><div class="layout"><aside class="menu"><button class="active" onclick="showSection('general',this)">Общее</button><button onclick="showSection('employees',this)">Сотрудники</button><button onclick="showSection('locations',this)">Локации</button><button onclick="showSection('statuses',this)">Статусы</button><button onclick="showSection('dictionary',this)">Справочник</button><button onclick="showSection('forms',this)">Редактор форм</button><button onclick="showSection('docs',this)">Шаблоны документов</button><button onclick="showSection('finance',this)">Финансы</button><button onclick="showSection('marketing',this)">Маркетинг</button><button onclick="showSection('integrations',this)">Интеграции</button><button onclick="showSection('api',this)">API</button></aside><section class="content">
-{% if messages %}{% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}{% endif %}
-<section id="general" class="section active"><div class="card"><div class="card-title">Общее</div><form method="post">{% csrf_token %}<input type="hidden" name="action" value="save_company"><div class="grid2"><div class="field"><label>Название CRM</label><input name="shop_name" value="{{ company.shop_name }}"></div><div class="field"><label>Название компании</label><input name="company_name" value="{{ company.company_name }}"></div><div class="field"><label>Валюта</label><input name="currency" value="{{ company.currency }}"></div><div class="field"><label>Префикс заказа</label><input name="order_prefix" value="{{ company.order_prefix }}"></div><div class="field"><label>Начальный номер</label><input name="order_start_number" type="number" value="{{ company.order_start_number }}"></div></div><div class="field"><label>Реквизиты</label><textarea name="company_info">{{ company.company_info }}</textarea></div><button class="btn btn-green">Сохранить</button></form></div></section>
-<section id="employees" class="section"><div class="card"><div class="card-title">Сотрудники</div><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="create_user"><div class="field"><label>Логин / Email</label><input name="username" required></div><div class="field"><label>Имя и фамилия</label><input name="full_name"></div><div class="field"><label>Пароль</label><input name="password" placeholder="12345678"></div><div class="field"><label>Роль</label><select name="role">{% for key,label in role_choices %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div><button class="btn btn-green">Добавить</button></form></div><div class="card"><table><thead><tr><th>Сотрудник</th><th>Логин</th><th>Роль</th><th>Статус</th><th></th></tr></thead><tbody>{% for user in users %}<tr><td><b>{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</b></td><td>{{ user.username }}</td><td>{% if user.profile %}{{ user.profile.get_role_display }}{% else %}—{% endif %}</td><td>{% if user.is_active %}Активен{% else %}Отключён{% endif %}</td><td class="right"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_user"><input type="hidden" name="user_id" value="{{ user.id }}"><button class="btn btn-light btn-sm">{% if user.is_active %}Отключить{% else %}Включить{% endif %}</button></form></td></tr>{% endfor %}</tbody></table></div></section>
-<section id="locations" class="section"><div class="card"><div class="card-title">Локации</div><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="save_location"><div class="field"><label>Название</label><input name="name" required></div><div class="field"><label>Адрес</label><input name="address"></div><div class="field"><label>Телефон</label><input name="phone"></div><label><input type="checkbox" name="active" checked> Активна</label><button class="btn btn-green">Добавить локацию</button></form></div><div class="card"><table><thead><tr><th>Название</th><th>Адрес</th><th>Телефон</th><th>Активна</th><th></th></tr></thead><tbody>{% for item in locations %}<tr><td><b>{{ item.name }}</b></td><td>{{ item.address|default:'—' }}</td><td>{{ item.phone|default:'—' }}</td><td>{% if item.active %}Да{% else %}Нет{% endif %}</td><td class="right"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_location"><input type="hidden" name="id" value="{{ item.id }}"><button class="btn btn-red btn-sm">Удалить</button></form></td></tr>{% endfor %}</tbody></table></div></section>
-<section id="statuses" class="section"><div class="card"><div class="card-title">Статусы</div><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="save_status"><div class="field"><label>Группа</label><input name="group" value="Новые"></div><div class="field"><label>Код</label><input name="code"></div><div class="field"><label>Название</label><input name="name" required></div><div class="field"><label>Цвет</label><input name="color" type="color" value="#1976d2"></div><div class="field"><label>Порядок</label><input name="order" type="number" value="100"></div><div class="field"><label>Роли</label><select name="roles" multiple><option value="admin">Администратор</option><option value="manager">Менеджер</option><option value="master">Мастер</option></select></div><label><input type="checkbox" name="final"> Финальный</label><label><input type="checkbox" name="salary"> Начислять ЗП</label><label><input type="checkbox" name="cash_income"> Приход в кассу</label><button class="btn btn-green">Добавить статус</button></form></div><div class="card"><table><thead><tr><th>Порядок</th><th>Группа</th><th>Статус</th><th>Код</th><th>Роли</th><th>Действия</th></tr></thead><tbody>{% for item in statuses %}<tr><td>{{ item.order }}</td><td>{{ item.group }}</td><td><span class="pill" style="background:{{ item.color }}">{{ item.name }}</span></td><td>{{ item.code }}</td><td>{{ item.roles|join:', ' }}</td><td>{% if item.final %}Финальный{% endif %}{% if item.salary %}<br>ЗП{% endif %}{% if item.cash_income %}<br>Касса{% endif %}</td></tr>{% endfor %}</tbody></table></div></section>
-<section id="dictionary" class="section"><div class="card"><div class="card-title">Справочник</div><div class="tabs"><button class="tab active" onclick="showDict('groups',this)">Типы техники</button><button class="tab" onclick="showDict('brands',this)">Бренды</button><button class="tab" onclick="showDict('models',this)">Модели</button><button class="tab" onclick="showDict('ads',this)">Реклама</button></div><div id="groups" class="dict active"><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="save_dictionary"><input type="hidden" name="dict_type" value="group"><div class="field"><label>Новый тип техники</label><input name="name"></div><button class="btn btn-green">Добавить</button></form><table>{% for item in device_groups %}<tr><td>{{ item.name }}</td></tr>{% endfor %}</table></div><div id="brands" class="dict"><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="save_dictionary"><input type="hidden" name="dict_type" value="brand"><div class="field"><label>Новый бренд</label><input name="name"></div><button class="btn btn-green">Добавить</button></form><table>{% for item in device_brands %}<tr><td>{{ item.name }}</td></tr>{% endfor %}</table></div><div id="models" class="dict"><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="save_dictionary"><input type="hidden" name="dict_type" value="model"><div class="field"><label>Новая модель</label><input name="name"></div><div class="field"><label>Бренд</label><select name="brand_id"><option value="">Без бренда</option>{% for brand in device_brands %}<option value="{{ brand.id }}">{{ brand.name }}</option>{% endfor %}</select></div><button class="btn btn-green">Добавить</button></form><table>{% for item in device_models %}<tr><td>{{ item.name }}</td><td>{% if item.brand %}{{ item.brand.name }}{% else %}—{% endif %}</td></tr>{% endfor %}</table></div><div id="ads" class="dict"><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="save_dictionary"><input type="hidden" name="dict_type" value="ad"><div class="field"><label>Новая рекламная кампания</label><input name="name"></div><button class="btn btn-green">Добавить</button></form><table>{% for item in ad_campaigns %}<tr><td>{{ item.name }}</td></tr>{% endfor %}</table></div></div></section>
-<section id="forms" class="section"><div class="card"><div class="card-title">Редактор форм</div><form method="post" class="grid2">{% csrf_token %}<input type="hidden" name="action" value="save_field"><div class="field"><label>Раздел</label><select name="section"><option>Заказы и расчёты</option><option>Обращения</option><option>Контакты</option><option>Устройства</option></select></div><div class="field"><label>Код</label><input name="code"></div><div class="field"><label>Название</label><input name="name" required></div><div class="field"><label>Порядок</label><input name="order" type="number" value="100"></div><label><input type="checkbox" name="required"> Обязательное</label><label><input type="checkbox" name="visible" checked> Видимое</label><button class="btn btn-green">Добавить поле</button></form></div><div class="card"><table><thead><tr><th>Порядок</th><th>Раздел</th><th>Код</th><th>Название</th><th>Обязательное</th><th>Видимое</th></tr></thead><tbody>{% for item in form_fields %}<tr><td>{{ item.order }}</td><td>{{ item.section }}</td><td>{{ item.code }}</td><td>{{ item.name }}</td><td>{% if item.required %}Да{% else %}Нет{% endif %}</td><td>{% if item.visible %}Да{% else %}Нет{% endif %}</td></tr>{% endfor %}</tbody></table></div></section>
-<section id="docs" class="section"><div class="card"><div class="card-title">Шаблоны документов</div><p class="muted">Вернёмся позже.</p></div></section><section id="finance" class="section"><div class="card"><div class="card-title">Финансы</div><p class="muted">Вернёмся позже.</p></div></section><section id="marketing" class="section"><div class="card"><div class="card-title">Маркетинг</div><p class="muted">Вернёмся позже.</p></div></section><section id="integrations" class="section"><div class="card"><div class="card-title">Интеграции</div><p class="muted">Вернёмся позже.</p></div></section><section id="api" class="section"><div class="card"><div class="card-title">API</div><p class="muted">Вернёмся позже.</p></div></section>
-</section></div></main></div>
+    <aside class="sidebar">
+        <div class="avatar">CRM</div>
+        <nav class="nav">
+            <a class="nav-item" href="/company/">Моя компания</a>
+            <div class="nav-sep"></div>
+            <a class="nav-item" href="/">Заказы</a>
+            <a class="nav-item" href="/finance/">Финансы</a>
+            <a class="nav-item" href="/reports/">Отчеты</a>
+            <div class="nav-sep"></div>
+            <a class="nav-item active" href="/settings/">Настройки</a>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="topbar">
+            <div class="title">Настройки</div>
+            <div class="top-actions">
+                <span class="badge">Структура RemOnline</span>
+                <span class="muted">Fadeev-CRM</span>
+            </div>
+        </div>
+
+        <div class="layout">
+            <aside class="settings-menu">
+                <button class="active" onclick="showSection('general', this)">Общее <small>компания</small></button>
+                <button onclick="showSection('employees', this)">Сотрудники <small>роли</small></button>
+                <button onclick="showSection('locations', this)">Локации <small>филиалы</small></button>
+                <button onclick="showSection('statuses', this)">Статусы <small>воронка</small></button>
+                <button onclick="showSection('dictionary', this)">Справочник техники <small>типы / бренды / модели</small></button>
+                <button onclick="showSection('forms', this)">Редактор форм <small>поля заказа</small></button>
+                <button onclick="showSection('finance', this)">Финансы <small>кассы</small></button>
+                <button onclick="showSection('marketing', this)">Маркетинг <small>источники</small></button>
+                <button onclick="showSection('integrations', this)">Интеграции <small>сервисы</small></button>
+                <button onclick="showSection('api', this)">API <small>доступ</small></button>
+            </aside>
+
+            <section class="content">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="message">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <section id="general" class="section active">
+                    <div class="section-head">
+                        <h1 class="section-title">Общее</h1>
+                        <p class="section-subtitle">Основные параметры CRM, компании и нумерации заказов.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Данные компании</div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_company">
+                            <div class="grid2">
+                                <div class="field"><label>Название CRM</label><input name="shop_name" value="{{ company.shop_name }}"></div>
+                                <div class="field"><label>Название компании</label><input name="company_name" value="{{ company.company_name }}"></div>
+                                <div class="field"><label>Валюта</label><input name="currency" value="{{ company.currency }}"></div>
+                                <div class="field"><label>Префикс заказа</label><input name="order_prefix" value="{{ company.order_prefix }}"></div>
+                                <div class="field"><label>Начальный номер</label><input name="order_start_number" type="number" value="{{ company.order_start_number }}"></div>
+                            </div>
+                            <div class="field"><label>Реквизиты / информация для документов</label><textarea name="company_info">{{ company.company_info }}</textarea></div>
+                            <button class="btn btn-green">Сохранить</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="employees" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Сотрудники</h1>
+                        <p class="section-subtitle">Пользователи CRM, роли, доступ к заказам и начислениям.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Добавить сотрудника</div>
+                        <form method="post" class="grid2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="create_user">
+                            <div class="field"><label>Логин / Email</label><input name="username" required></div>
+                            <div class="field"><label>Имя и фамилия</label><input name="full_name"></div>
+                            <div class="field"><label>Пароль</label><input name="password" placeholder="12345678"></div>
+                            <div class="field"><label>Роль</label><select name="role">{% for key,label in role_choices %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div>
+                            <div><button class="btn btn-green">Добавить сотрудника</button></div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Список сотрудников</div>
+                        <table>
+                            <thead><tr><th>Сотрудник</th><th>Логин</th><th>Роль</th><th>Статус</th><th></th></tr></thead>
+                            <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td><b>{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</b></td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{% if user.profile %}{{ user.profile.get_role_display }}{% else %}—{% endif %}</td>
+                                    <td>{% if user.is_active %}Активен{% else %}Отключён{% endif %}</td>
+                                    <td class="right">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="toggle_user">
+                                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                                            <button class="btn btn-light btn-sm">{% if user.is_active %}Отключить{% else %}Включить{% endif %}</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="locations" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Локации</h1>
+                        <p class="section-subtitle">Филиалы, пункты приёма, склады и кассы по адресам.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Добавить локацию</div>
+                        <form method="post" class="grid2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_location">
+                            <div class="field"><label>Название</label><input name="name" required></div>
+                            <div class="field"><label>Адрес</label><input name="address"></div>
+                            <div class="field"><label>Телефон</label><input name="phone"></div>
+                            <label class="check"><input type="checkbox" name="active" checked> Активна</label>
+                            <div><button class="btn btn-green">Добавить локацию</button></div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Список локаций</div>
+                        <table>
+                            <thead><tr><th>Название</th><th>Адрес</th><th>Телефон</th><th>Активна</th><th></th></tr></thead>
+                            <tbody>
+                            {% for item in locations %}
+                                <tr>
+                                    <td><b>{{ item.name }}</b></td>
+                                    <td>{{ item.address|default:'—' }}</td>
+                                    <td>{{ item.phone|default:'—' }}</td>
+                                    <td>{% if item.active %}Да{% else %}Нет{% endif %}</td>
+                                    <td class="right">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_location">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            <button class="btn btn-red btn-sm">Удалить</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="statuses" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Статусы</h1>
+                        <p class="section-subtitle">Настройка воронки заказов: новые, в работе, закрытые, отказ.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Добавить статус</div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_status">
+                            <div class="grid3">
+                                <div class="field"><label>Группа</label><input name="group" value="Новые"></div>
+                                <div class="field"><label>Код</label><input name="code" placeholder="new_status"></div>
+                                <div class="field"><label>Название</label><input name="name" required></div>
+                                <div class="field"><label>Цвет</label><input name="color" type="color" value="#1976d2"></div>
+                                <div class="field"><label>Порядок</label><input name="order" type="number" value="100"></div>
+                                <div class="field"><label>Роли</label><select name="roles" multiple><option value="admin">Администратор</option><option value="manager">Менеджер</option><option value="master">Мастер</option></select></div>
+                            </div>
+                            <div class="checks">
+                                <label class="check"><input type="checkbox" name="final"> Финальный</label>
+                                <label class="check"><input type="checkbox" name="salary"> Начислять ЗП</label>
+                                <label class="check"><input type="checkbox" name="cash_income"> Приход в кассу</label>
+                            </div>
+                            <button class="btn btn-green">Добавить статус</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Статусы заказов</div>
+                        <table>
+                            <thead><tr><th>Порядок</th><th>Группа</th><th>Статус</th><th>Код</th><th>Роли</th><th>Логика</th></tr></thead>
+                            <tbody>
+                            {% for item in statuses %}
+                                <tr>
+                                    <td>{{ item.order }}</td>
+                                    <td>{{ item.group }}</td>
+                                    <td><span class="pill" style="background:{{ item.color }}">{{ item.name }}</span></td>
+                                    <td>{{ item.code }}</td>
+                                    <td>{{ item.roles|join:', ' }}</td>
+                                    <td>{% if item.final %}Финальный{% endif %}{% if item.salary %}<br>ЗП{% endif %}{% if item.cash_income %}<br>Касса{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="dictionary" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Справочник техники</h1>
+                        <p class="section-subtitle">Типы устройств, бренды и модели для карточки заказа.</p>
+                    </div>
+                    <div class="card">
+                        <div class="tabs">
+                            <button class="tab active" onclick="showDict('groups', this)">Типы техники</button>
+                            <button class="tab" onclick="showDict('brands', this)">Бренды</button>
+                            <button class="tab" onclick="showDict('models', this)">Модели</button>
+                        </div>
+
+                        <div id="groups" class="dict active">
+                            <form method="post" class="grid2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="save_dictionary">
+                                <input type="hidden" name="dict_type" value="group">
+                                <div class="field"><label>Новый тип техники</label><input name="name" placeholder="Робот-пылесос"></div>
+                                <div><button class="btn btn-green">Добавить</button></div>
+                            </form>
+                            <table>{% for item in device_groups %}<tr><td>{{ item.name }}</td><td class="right"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_dictionary"><input type="hidden" name="dict_type" value="group"><input type="hidden" name="id" value="{{ item.id }}"><button class="btn btn-red btn-sm">Удалить</button></form></td></tr>{% endfor %}</table>
+                        </div>
+
+                        <div id="brands" class="dict">
+                            <form method="post" class="grid2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="save_dictionary">
+                                <input type="hidden" name="dict_type" value="brand">
+                                <div class="field"><label>Новый бренд</label><input name="name" placeholder="Dreame"></div>
+                                <div><button class="btn btn-green">Добавить</button></div>
+                            </form>
+                            <table>{% for item in device_brands %}<tr><td>{{ item.name }}</td><td class="right"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_dictionary"><input type="hidden" name="dict_type" value="brand"><input type="hidden" name="id" value="{{ item.id }}"><button class="btn btn-red btn-sm">Удалить</button></form></td></tr>{% endfor %}</table>
+                        </div>
+
+                        <div id="models" class="dict">
+                            <form method="post" class="grid2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="save_dictionary">
+                                <input type="hidden" name="dict_type" value="model">
+                                <div class="field"><label>Новая модель</label><input name="name" placeholder="L10s Ultra"></div>
+                                <div class="field"><label>Бренд</label><select name="brand_id"><option value="">Без бренда</option>{% for brand in device_brands %}<option value="{{ brand.id }}">{{ brand.name }}</option>{% endfor %}</select></div>
+                                <div><button class="btn btn-green">Добавить</button></div>
+                            </form>
+                            <table>{% for item in device_models %}<tr><td>{{ item.name }}</td><td>{% if item.brand %}{{ item.brand.name }}{% else %}—{% endif %}</td><td class="right"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_dictionary"><input type="hidden" name="dict_type" value="model"><input type="hidden" name="id" value="{{ item.id }}"><button class="btn btn-red btn-sm">Удалить</button></form></td></tr>{% endfor %}</table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="forms" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Редактор форм</h1>
+                        <p class="section-subtitle">Какие поля отображаются и обязательны в карточке заказа.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Добавить поле</div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_field">
+                            <div class="grid3">
+                                <div class="field"><label>Раздел</label><select name="section"><option>Заказы и расчёты</option><option>Обращения</option><option>Контакты</option><option>Устройства</option></select></div>
+                                <div class="field"><label>Код</label><input name="code" placeholder="custom_field"></div>
+                                <div class="field"><label>Название</label><input name="name" required></div>
+                                <div class="field"><label>Порядок</label><input name="order" type="number" value="100"></div>
+                            </div>
+                            <div class="checks">
+                                <label class="check"><input type="checkbox" name="required"> Обязательное</label>
+                                <label class="check"><input type="checkbox" name="visible" checked> Показывать</label>
+                            </div>
+                            <button class="btn btn-green">Добавить поле</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Поля формы заказа</div>
+                        <table>
+                            <thead><tr><th>Порядок</th><th>Раздел</th><th>Название</th><th>Код</th><th>Обяз.</th><th>Видно</th><th></th></tr></thead>
+                            <tbody>
+                            {% for item in form_fields %}
+                                <tr>
+                                    <td>{{ item.order }}</td><td>{{ item.section }}</td><td><b>{{ item.name }}</b></td><td>{{ item.code }}</td>
+                                    <td>{% if item.required %}Да{% else %}Нет{% endif %}</td>
+                                    <td>{% if item.visible %}Да{% else %}Нет{% endif %}</td>
+                                    <td class="right"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_field"><input type="hidden" name="id" value="{{ item.id }}"><button class="btn btn-red btn-sm">Удалить</button></form></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="finance" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Финансы</h1>
+                        <p class="section-subtitle">Кассы, статьи платежей, зарплаты и правила начислений.</p>
+                    </div>
+                    <div class="stat-grid">
+                        <div class="stat"><b>{{ company.currency }}</b><span class="muted">Основная валюта</span></div>
+                        <div class="stat"><b>15%</b><span class="muted">ЗП мастера от прибыли</span></div>
+                        <div class="stat"><b>15%</b><span class="muted">ЗП менеджера после мастера</span></div>
+                        <div class="stat"><b>2</b><span class="muted">Кассы: наличные / безнал</span></div>
+                    </div>
+                    <div class="card"><div class="empty-box">Следующий шаг: вынесем кассы, статьи доходов/расходов и проценты зарплат в отдельные редактируемые настройки.</div></div>
+                </section>
+
+                <section id="marketing" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Маркетинг</h1>
+                        <p class="section-subtitle">Источники заявок, рекламные кампании и аналитика.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Добавить рекламную кампанию</div>
+                        <form method="post" class="grid2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_dictionary">
+                            <input type="hidden" name="dict_type" value="ad">
+                            <div class="field"><label>Название кампании</label><input name="name" placeholder="Яндекс Директ / SEO / Авито"></div>
+                            <div><button class="btn btn-green">Добавить</button></div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <table>{% for item in ad_campaigns %}<tr><td>{{ item.name }}</td><td class="right"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_dictionary"><input type="hidden" name="dict_type" value="ad"><input type="hidden" name="id" value="{{ item.id }}"><button class="btn btn-red btn-sm">Удалить</button></form></td></tr>{% endfor %}</table>
+                    </div>
+                </section>
+
+                <section id="integrations" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">Интеграции</h1>
+                        <p class="section-subtitle">Телефония, Telegram, сайты, формы заявок, уведомления.</p>
+                    </div>
+                    <div class="card"><div class="empty-box">Раздел подготовлен. Далее добавим настройки Telegram-бота, источники заявок с сайта и вебхуки.</div></div>
+                </section>
+
+                <section id="api" class="section">
+                    <div class="section-head">
+                        <h1 class="section-title">API</h1>
+                        <p class="section-subtitle">Ключи доступа, вебхуки и внешние подключения.</p>
+                    </div>
+                    <div class="card"><div class="empty-box">Раздел подготовлен. Далее добавим генерацию API-ключей, список токенов и журнал обращений.</div></div>
+                </section>
+            </section>
+        </div>
+    </main>
+</div>
+
 <script>
-function showSection(id,el){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.menu button').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
-function showDict(id,el){document.querySelectorAll('.dict').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
+    function showSection(id, el) {
+        document.querySelectorAll('.section').forEach(function(section) {
+            section.classList.remove('active');
+        });
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.settings-menu button').forEach(function(button) {
+            button.classList.remove('active');
+        });
+        el.classList.add('active');
+    }
+
+    function showDict(id, el) {
+        document.querySelectorAll('.dict').forEach(function(section) {
+            section.classList.remove('active');
+        });
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.tab').forEach(function(button) {
+            button.classList.remove('active');
+        });
+        el.classList.add('active');
+    }
 </script>
 </body>
 </html>
